@@ -26,7 +26,7 @@ const HomePage: React.FC = () => {
         </Section>
 
         <Section
-          id="our-team"
+          id="team"
           title="Our Team"
           description="Meet the team behind docta."
         >
