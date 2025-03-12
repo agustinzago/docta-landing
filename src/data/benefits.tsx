@@ -1,72 +1,81 @@
-import { FiBarChart2, FiBriefcase, FiDollarSign, FiLock, FiPieChart, FiShield, FiTarget, FiTrendingUp, FiUser } from "react-icons/fi";
+import { 
+    FiUsers, 
+    FiZap, 
+    FiDatabase, 
+    FiMessageSquare, 
+    FiTrendingUp, 
+    FiSettings, 
+    FiBriefcase, 
+    FiMonitor 
+} from "react-icons/fi";
 
 import { IBenefit } from "@/types"
 
 export const benefits: IBenefit[] = [
     {
-        title: "Smart Budgeting",
-        description: "Take the guesswork out of managing your money. Our AI-powered budgeting tool adapts to your lifestyle and helps you stay on track.",
+        title: "AI-Powered Onboarding",
+        description: "Seamlessly integrate new employees or clients with automated AI-driven workflows, reducing manual work and accelerating productivity.",
         bullets: [
             {
-                title: "Intelligent Categorization",
-                description: "Automatically sorts your transactions for crystal-clear insights.",
-                icon: <FiBarChart2 size={26} />
+                title: "Automated Task Assignments",
+                description: "AI assigns the right documents, credentials, and tools for new hires instantly.",
+                icon: <FiZap size={26} />
             },
             {
-                title: "Customizable Goals",
-                description: "Set and track financial objectives that matter to you.",
-                icon: <FiTarget size={26} />
+                title: "Smart Knowledge Base",
+                description: "New employees can ask questions and get instant AI-powered answers from company documentation.",
+                icon: <FiMessageSquare size={26} />
             },
             {
-                title: "Predictive Analysis",
-                description: "Get ahead of your finances with spending forecasts and alerts.",
-                icon: <FiTrendingUp size={26} />
+                title: "Personalized Onboarding Paths",
+                description: "Custom-tailored onboarding based on role, location, and experience.",
+                icon: <FiUsers size={26} />
             }
         ],
-        imageSrc: "/images/mockup-1.webp"
+        imageSrc:  "/images/chat.png"
     },
     {
-        title: "Seamless Investing",
-        description: "Start building wealth today, no financial degree required. Finwise makes investing accessible and straightforward.",
+        title: "Business Process Automation",
+        description: "Eliminate repetitive tasks with intelligent AI integrations that connect all your business tools effortlessly.",
         bullets: [
             {
-                title: "Micro-Investing",
-                description: "Begin with as little as $1 and watch your money grow.",
-                icon: <FiDollarSign size={26} />
+                title: "Workflow Orchestration",
+                description: "Seamless integration with Slack, Notion, Asana, and more for automated workflows.",
+                icon: <FiSettings size={26} />
             },
             {
-                title: "Expert Portfolios",
-                description: "Choose from investment strategies tailored to your risk tolerance.",
+                title: "Email & Calendar Automation",
+                description: "AI schedules meetings, sends follow-ups, and prioritizes your inbox.",
+                icon: <FiMonitor size={26} />
+            },
+            {
+                title: "Cross-Platform Data Sync",
+                description: "Automatically sync data between your CRM, databases, and collaboration tools.",
+                icon: <FiDatabase size={26} />
+            }
+        ],
+        imageSrc:  "/images/flowchart.png"
+    },
+    {
+        title: "AI-Driven Business Intelligence",
+        description: "Make smarter decisions with AI-generated insights, predictive analytics, and automated reporting.",
+        bullets: [
+            {
+                title: "Conversational Data Insights",
+                description: "Ask AI questions about your business data and get real-time responses.",
+                icon: <FiTrendingUp size={26} />
+            },
+            {
+                title: "Automated Reporting",
+                description: "Daily, weekly, or monthly reports generated and delivered to your inbox.",
                 icon: <FiBriefcase size={26} />
             },
             {
-                title: "Real-Time Performance",
-                description: "Track your investments with easy-to-understand metrics and visuals.",
-                icon: <FiPieChart size={26} />
+                title: "Predictive Performance Analysis",
+                description: "Get future trend predictions based on historical data.",
+                icon: <FiMonitor size={26} />
             }
         ],
-        imageSrc: "/images/mockup-2.webp"
-    },
-    {
-        title: "Bank-Grade Security",
-        description: "Your financial data deserves the best protection. Rest easy knowing Finwise employs cutting-edge security measures.",
-        bullets: [
-            {
-                title: "Military-Grade Encryption",
-                description: "Your information is safeguarded with the highest level of encryption.",
-                icon: <FiLock size={26} />
-            },
-            {
-                title: "Biometric Authentication",
-                description: "Access your account securely with fingerprint or facial recognition.",
-                icon: <FiUser size={26} />
-            },
-            {
-                title: "Real-Time Fraud Detection",
-                description: "Our system constantly monitors for suspicious activity to keep your money safe.",
-                icon: <FiShield size={26} />
-            }
-        ],
-        imageSrc: "/images/mockup-1.webp"
-    },
-]
+        imageSrc:  "/images/chart.png"
+    }
+];

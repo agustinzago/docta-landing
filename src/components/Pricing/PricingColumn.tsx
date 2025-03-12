@@ -21,7 +21,13 @@ const PricingColumn: React.FC<Props> = ({ tier, highlight }: Props) => {
                     </span>
                     {typeof price === 'number' && <span className="text-lg font-normal text-gray-600">/mo</span>}
                 </p>
-                <button className={clsx("w-full py-3 px-4 rounded-full transition-colors", { "bg-primary hover:bg-primary-accent": highlight, "bg-hero-background hover:bg-gray-200": !highlight })}>
+                <button className={clsx(
+                    "w-full py-3 px-4 rounded-full transition-colors",
+                    {
+                        "bg-primary text-white hover:bg-primary-accent": highlight,
+                        "bg-hero-background text-black hover:bg-gray-200": !highlight
+                    }
+                )}>
                     Get Started
                 </button>
             </div>
@@ -41,4 +47,4 @@ const PricingColumn: React.FC<Props> = ({ tier, highlight }: Props) => {
     )
 }
 
-export default PricingColumn
+export default PricingColumn;

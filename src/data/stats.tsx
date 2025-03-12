@@ -1,22 +1,21 @@
-import { BsBarChartFill, BsFillStarFill } from "react-icons/bs";
-import { PiGlobeFill } from "react-icons/pi";
+import { BsLightningFill, BsFillPeopleFill, BsShieldLockFill } from "react-icons/bs";
 
 import { IStats } from "@/types";
 
 export const stats: IStats[] = [
     {
-        title: "20M+",
-        icon: <BsBarChartFill size={34} className="text-blue-500" />,
-        description: "Transactions processed securely every day, providing real-time insights."
+        title: "10K+",
+        icon: <BsLightningFill size={34} className="text-primary" />,
+        description: "Automated workflows executed daily, streamlining operations effortlessly."
     },
     {
-        title: "5.0",
-        icon: <BsFillStarFill size={34} className="text-yellow-500" />,
-        description: "Star rating, consistently maintained across app stores."
+        title: "500+",
+        icon: <BsFillPeopleFill size={34} className="text-secondary" />,
+        description: "Businesses trust Docta to optimize their onboarding and workflow processes."
     },
     {
-        title: "200+ ",
-        icon: <PiGlobeFill size={34} className="text-green-600" />,
-        description: "Financial Institutions, seamlessly integrated, so you can manage all accounts."
-    }
+        title: "99.9%",
+        icon: <BsShieldLockFill size={34} className="text-green-600" />,
+        description: "Uptime reliability ensures uninterrupted automation and data security."
+    },
 ];

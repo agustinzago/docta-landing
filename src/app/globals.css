@@ -5,12 +5,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #FED835;
-  --secondary: #304fff;
+  --primary: #c52f2a;
+  --secondary: #c57d2a;
 
   --primary-accent: #e5c230;
   --foreground-accent: #454545;
-  --hero-background: #F3F3F5;
+  --hero-background: #f3f3f5;
 }
 
 html {
@@ -19,7 +19,7 @@ html {
 
 body {
   @apply text-lg;
-  
+
   color: var(--foreground);
   background: var(--background);
   font-family: "Source Sans 3", sans-serif;
@@ -39,7 +39,90 @@ body {
   font-style: normal;
 }
 
-h1, h2, h3, h4, h5, h6 {
+.gloria {
+  font-family: "Gloria Hallelujah", cursive;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.dot-container {
+  position: absolute;
+  top: -20px; /* Ajusta según sea necesario */
+  right: -10px; /* Ajusta según sea necesario */
+  display: flex;
+  gap: 2px;
+}
+
+.dot {
+  width: 6px;
+  height: 28px;
+  background-color: #c52f2a;
+  border-radius: 30%;
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+.dot1 {
+  position: relative;
+  top: 33px;
+  right: 20px;
+  rotate: -10deg;
+  animation-delay: 0.2s;
+}
+
+.dot2 {
+  position: relative;
+  top: 38px;
+  rotate: 30deg;
+  animation-delay: 0.6s;
+}
+
+.dot3 {
+  position: relative;
+  top: 63px;
+  left: 10px;
+  rotate: 90deg;
+  animation-delay: 1s;
+}
+
+@media (max-width: 768px) {
+  .dot-container {
+    top: -15px; /* Ajusta según sea necesario */
+    right: -10px; /* Ajusta según sea necesario */
+  }
+
+  .dot {
+    width: 4px;
+    height: 20px;
+  }
+
+  .dot1 {
+    top: 20px;
+    right: 10px;
+  }
+
+  .dot2 {
+    top: 25px;
+  }
+
+  .dot3 {
+    top: 40px;
+    left: 5px;
+  }
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Manrope", sans-serif;
   font-optical-sizing: auto;
   font-style: normal;

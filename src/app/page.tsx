@@ -1,5 +1,5 @@
 import Hero from "@/components/Hero";
-import Testimonials from "@/components/Testimonials";
+import OurTeam from "@/components/OurTeam";
 import Pricing from "@/components/Pricing/Pricing";
 import FAQ from "@/components/FAQ";
 import Logos from "@/components/Logos";
@@ -26,11 +26,11 @@ const HomePage: React.FC = () => {
         </Section>
 
         <Section
-          id="testimonials"
-          title="What Our Clients Say"
-          description="Hear from those who have partnered with us."
+          id="our-team"
+          title="Our Team"
+          description="Meet the team behind docta."
         >
-          <Testimonials />
+          <OurTeam />
         </Section>
 
         <FAQ />

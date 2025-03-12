@@ -1,6 +1,5 @@
 export const ctaDetails = {
-    heading: 'Join Over 1 Million Users To Transform Your Finances',
-    subheading: 'Your journey to financial freedom starts here. Download Finwise today and take the first step towards a brighter financial future!',
-    appStoreUrl: '#',
-    googlePlayUrl: '#'
-}
+  heading: "Streamline Your Workflows with AI-Powered Automation",
+  subheading:
+    "Join hundreds of businesses automating tasks, optimizing processes, and improving efficiency. Get started with docta today!",
+};
