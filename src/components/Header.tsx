@@ -18,9 +18,9 @@ const Header: React.FC = () => {
     const secondHalf = menuItems.slice(half);
 
     return (
-        <header className="bg-trasparent md:bg-transparent absolute md:absolute  fixed top-0 left-0 right-0 z-50 w-full">
+        <header className="bg-trasparent md:bg-transparent fixed md:absolute top-0 left-0 right-0 z-50 w-full">
             <Container className="!px-0">
-                <nav className="bg-trasparent md:bg-transparent shadow-md md:shadow-none mx-auto flex items-center justify-between py-3 px-5 md:py-6">
+                <nav className="bg-slate-50 md:bg-transparent shadow-md md:shadow-none mx-auto flex items-center justify-between py-3 px-5 md:py-6">
                     
                     {/* Menú Desktop (Primera mitad) */}
                     <ul className="hidden md:flex space-x-6 flex-1 justify-end">
