@@ -5,6 +5,7 @@ import { Gloria_Hallelujah } from 'next/font/google';
 import clsx from 'clsx';
 import { motion, Variants } from "framer-motion";
 import { teamMembers } from '@/data/team';
+import TeamMemberCard from '../Team/TeamMemberCard';
 
 const gloria = Gloria_Hallelujah({ subsets: ['latin'], weight: '400' });
 
@@ -218,48 +219,21 @@ const AboutUs: React.FC = () => {
 
       {/* Meet Our Team Section */}
       <section id="team" className="py-16 px-5 bg-slate-50">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl font-bold mb-8 text-center">Meet Our Team</h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {teamMembers.map((member, index) => (
-            <motion.div
-              key={index}
-              className="bg-white shadow-lg rounded-lg p-6 text-center"
-              whileHover={{ scale: 1.05 }}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-            >
-              {/* Imagen */}
-              <div className="relative w-32 h-32 mx-auto mb-4">
-                <Image
-                  src={member.avatar}
-                  alt={member.name}
-                  width={128}
-                  height={128}
-                  className="rounded-full object-cover"
-                />
-              </div>
-
-              {/* Nombre y rol */}
-              <h3 className="text-lg font-semibold text-foreground">{member.name}</h3>
-              <p className="text-sm text-foreground-accent">{member.role}</p>
-
-              {/* Redes Sociales */}
-              <div className="flex justify-center gap-4 mt-3">
-                {member.socials.map((social, i) => (
-                  <a key={i} href={social.link} target="_blank" rel="noopener noreferrer">
-                    <Image src={social.icon} alt={social.name} width={20} height={20} className="opacity-70 hover:opacity-100 transition-opacity" />
-                  </a>
-                ))}
-              </div>
-            </motion.div>
-          ))}
-          </div>
-        </div>
-      </section>
+  <div className="max-w-5xl mx-auto">
+    <h2 className="text-3xl font-bold mb-8 text-center">Meet Our Team</h2>
+    
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      {teamMembers.map((member, index) => (
+        <TeamMemberCard 
+          key={index} 
+          member={member} 
+          index={index} 
+          animation="both" // Ambas animaciones para la página About
+        />
+      ))}
+    </div>
+  </div>
+</section>
 
       {/* Join Our Journey Section con animación */}
       <section className="py-16 px-5">
