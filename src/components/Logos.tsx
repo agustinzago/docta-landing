@@ -14,7 +14,7 @@ const Logos: React.FC = () => {
     return (
         <section id="logos" className="py-20 bg-background max-w-screen-xl mx-auto px-4">
             <p className="text-lg font-medium text-center mb-6">
-                Providing automation for <span className="text-primary">177+ enterprise tools</span>, including <span className="text-primary">Jira, Google, Teams</span>, and more, enabling seamless workflows.
+                Providing automation for <span className="text-primary">150+ enterprise tools</span>, including <span className="text-primary">Jira, Google, Teams</span>, and more, enabling seamless workflows.
             </p>
 
             {/* Carrusel de logos */}
@@ -23,7 +23,7 @@ const Logos: React.FC = () => {
                 spaceBetween={10}
                 loop={true}
                 autoplay={{
-                    delay: 3000,
+                    delay: 2000,
                     disableOnInteraction: false,
                 }}
                 centeredSlides={true}
