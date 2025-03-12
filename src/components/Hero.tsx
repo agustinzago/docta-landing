@@ -10,7 +10,7 @@ const gloria = Gloria_Hallelujah({ subsets: ['latin'], weight: '400' });
 
 const Hero: React.FC = () => {
   return (
-    <section className="relative flex flex-col items-center justify-center text-center pt-20 md:pt-40 pb-40 md:pb-60 px-5">
+    <section className="relative flex flex-col items-center justify-center text-center pt-28 md:pt-40 pb-40 md:pb-60 px-5">
       {/* Background Grid */}
       <div className="absolute inset-0 -z-10 bg-hero-background bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] mask-radial">
       </div>
@@ -59,7 +59,7 @@ const Hero: React.FC = () => {
         <p className="mt-4 text-foreground text-2xl text-gray-500">{heroDetails.subheading}</p>
 
         {/* Call To Actions */}
-        <div className="mt-6 flex flex-col sm:flex-row items-center sm:gap-4 w-fit mx-auto">
+        <div className="mt-6 flex flex-col sm:flex-row items-center sm:gap-4 w-fit mx-auto mb-6">
           <CTAButton text="How AI can help" url="/learn-ai" variant="primary" />
           <CTAButton text="Book a demo" url="/book-demo" variant="secondary" />
         </div>
