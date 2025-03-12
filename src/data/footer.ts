@@ -22,9 +22,17 @@ export const footerDetails: {
       text: "Our Team",
       url: "#team",
     },
+    {
+      text: "About Us",
+      url: "/about",
+    },
+    {
+      text: "Careers",
+      url: "/careers",
+    },
   ],
   email: "solutions@docta.com",
-  telephone: "+1 (123) 456-7890",
+  telephone: "+54 (351) 659-5111",
   socials: {
     // github: 'https://github.com',
     // x: 'https://twitter.com/x',
