@@ -6,9 +6,21 @@ export const teamMembers: ITeamMember[] = [
     role: "Co-Founder",
     avatar: "/images/agustinzago.jpeg",
     socials: [
-      { name: "Github", icon: "/icons/github-svgrepo-com.svg", link: "#" },
-      { name: "LinkedIn", icon: "icons/linkedin-svgrepo-com.svg", link: "#" },
-      { name: "Gmail", icon: "/icons/google-svgrepo-com.svg", link: "#" },
+      {
+        name: "Github",
+        icon: "/icons/github-svgrepo-com.svg",
+        link: "https://github.com/agustinzago",
+      },
+      {
+        name: "LinkedIn",
+        icon: "icons/linkedin-svgrepo-com.svg",
+        link: "https://www.linkedin.com/in/agustinzago/",
+      },
+      {
+        name: "Gmail",
+        icon: "/icons/google-svgrepo-com.svg",
+        link: "mailto:zagoagus@gmail.com",
+      },
     ],
   },
   {
