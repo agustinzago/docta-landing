@@ -19,11 +19,11 @@ const Logos: React.FC = () => {
 
             {/* Carrusel de logos */}
             <Swiper
-                slidesPerView={3}
+                slidesPerView={4}
                 spaceBetween={10}
                 loop={true}
                 autoplay={{
-                    delay: 2000,
+                    delay: 1000,
                     disableOnInteraction: false,
                 }}
                 centeredSlides={true}
