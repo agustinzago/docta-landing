@@ -26,8 +26,11 @@ const Header: React.FC = () => {
                     <ul className="hidden md:flex space-x-6 flex-1 justify-end">
                         {firstHalf.map(item => (
                             <li key={item.text}>
-                                <Link href={item.url} className="text-foreground hover:text-foreground-accent transition-colors">
-                                    {item.text}
+                                <Link 
+                                href={item.url}
+                                className="text-foreground hover:text-foreground-accent transition-colors"
+                                >
+                                {item.text}
                                 </Link>
                             </li>
                         ))}
