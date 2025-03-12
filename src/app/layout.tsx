@@ -24,7 +24,7 @@ export const metadata: Metadata = {
       {
         url: `${siteDetails.siteUrl}/images/opengraph.png`,
         width: 1200,
-        height: 675,
+        height: 630,
         alt: siteDetails.siteName,
       },
     ],
