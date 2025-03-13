@@ -1,6 +1,71 @@
+import { db } from '@/lib/db'
 import React from 'react'
+import ProfilePicture from './_components/ProfilePictre'
+import { currentUser } from '@clerk/nextjs/server'
+import ProfileForm from '@/components/forms/profile-form'
 
-const Settings =  () => {
+const Settings = async () => {
+  const authUser = await currentUser();
+  if (!authUser) {
+    return null
+  }
+
+  const user = await db.user.findUnique({
+    where: {
+      clerkId: authUser.id,
+    },
+  })
+
+  const removeProfileImage = async () => {
+    'use server'
+    try {
+      await db.user.update({
+        where: {
+          clerkId: authUser.id,
+        },
+        data: {
+          profileImage: '',
+        },
+      })
+      return true
+    } catch (error) {
+      console.error("Error removing profile image:", error)
+      return false
+    }
+  }
+
+  const updateUserInfo = async (name: string) => {
+    'use server'
+
+    const updateUser = await db.user.update({
+      where: {
+        clerkId: authUser.id,
+      },
+      data: {
+        name,
+      },
+    })
+    return updateUser
+  }
+
+
+  const uploadProfileImage = async (image: string) => {
+    'use server'
+    try {
+      await db.user.update({
+        where: {
+          clerkId: authUser.id,
+        },
+        data: {
+          profileImage: image,
+        },
+      })
+      return true
+    } catch (error) {
+      console.error("Error uploading profile image:", error)
+      return false
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -14,15 +79,15 @@ const Settings =  () => {
             Add or update your information
           </p>
         </div>
-        {/* <ProfilePicture
+        <ProfilePicture
           onDelete={removeProfileImage}
           userImage={user?.profileImage || ''}
           onUpload={uploadProfileImage}
-        /> */}
-        {/* <ProfileForm
-          user='Agustin'
-          onUpdate={() => {}}
-        /> */}
+        />
+        <ProfileForm
+          user={user}
+          onUpdate={updateUserInfo}
+        />
       </div>
     </div>
   )

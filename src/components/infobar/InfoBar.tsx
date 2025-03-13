@@ -9,6 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { UserButton } from '@clerk/nextjs'
 // import { useBilling } from '@/providers/billing-provider'
 // import { onPaymentDetails } from '@/app/(main)/(pages)/billing/_actions/payment-connecetions'
 
@@ -67,6 +68,7 @@ const InfoBar = () => {
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
+      <UserButton />
     </div>
   )
 }

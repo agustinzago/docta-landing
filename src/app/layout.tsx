@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { GoogleAnalytics } from '@next/third-parties/google';
 import { Source_Sans_3, Manrope } from "next/font/google";
 import { siteDetails } from '@/data/siteDetails';
+import {
+  ClerkProvider,
+} from '@clerk/nextjs'
 
 import "./globals.css";
 
@@ -40,12 +43,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+    <ClerkProvider
+      publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
       <html lang="en">
         <body className={`${manrope.className} ${sourceSans.className} antialiased`}>
           {siteDetails.googleAnalyticsId && <GoogleAnalytics gaId={siteDetails.googleAnalyticsId} />}
           {children}
         </body>
       </html>
-
+    </ClerkProvider>
   );
 }
