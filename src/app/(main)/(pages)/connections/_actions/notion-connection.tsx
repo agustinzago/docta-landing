@@ -89,6 +89,7 @@ export const onCreateNewPageInDatabase = async (
       type: 'database_id',
       database_id: databaseId,
     },
+    // [TODO]: Add more fields?
     properties: {
       name: [
         {
