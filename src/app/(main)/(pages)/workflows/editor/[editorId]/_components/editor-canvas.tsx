@@ -12,7 +12,9 @@ import ReactFlow, {
   ReactFlowInstance,
   applyEdgeChanges,
   addEdge,
+  applyNodeChanges,
 } from 'reactflow'
+import { OnNodesChange } from 'reactflow'
 import 'reactflow/dist/style.css'
 import EditorCanvasCardSingle from './editor-canvas-card-single'
 import {
@@ -48,14 +50,10 @@ const EditorCanvas = () => {
     event.dataTransfer.dropEffect = 'move'
   }, [])
 
-  // const onNodesChange = useCallback(
-  //   (changes: NodeChange[]) => {
-  //     //@ts-nocheck
-  //     setNodes((nds) => applyNodeChanges(changes, nds))
-  //   },
-  //   [setNodes]
-  // )
-
+  const onNodesChange: OnNodesChange = useCallback(
+    (changes) => setNodes((nds: EditorNodeType[]) => applyNodeChanges(changes, nds) as EditorNodeType[]),
+    [setNodes],
+  );
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) =>
       //@ts-nocheck
@@ -209,7 +207,7 @@ const EditorCanvas = () => {
                 onDrop={onDrop}
                 onDragOver={onDragOver}
                 nodes={state.editor.elements}
-                // onNodesChange={onNodesChange}
+                onNodesChange={onNodesChange}
                 edges={edges}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}

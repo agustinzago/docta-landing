@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 import React from 'react'
 import { Separator } from '@/components/ui/separator'
-import { EditorCanvasDefaultCardTypes } from '@/lib/constant'
+import { CONNECTIONS, EditorCanvasDefaultCardTypes } from '@/lib/constant'
 import {
   Card,
   CardDescription,
@@ -20,6 +20,7 @@ import {
 import EditorCanvasIconHelper from './editor-canvas-card-icon-hepler'
 import {
   Accordion,
+  AccordionContent,
   // AccordionContent,
   AccordionItem,
   AccordionTrigger,
@@ -28,6 +29,10 @@ import {
 // import RenderOutputAccordion from './render-output-accordian'
 // import { useFuzzieStore } from '@/store'
 import { EditorCanvasTypes, EditorNodeType } from '@/types'
+import { useNodeConnections } from '@/providers/connections-provider'
+import { onDragStart } from '@/lib/editor-utils'
+import RenderConnectionAccordion from './render-connection-accordion'
+import RenderOutputAccordion from './render-output-accordian'
 
 type Props = {
   nodes: EditorNodeType[]
@@ -35,7 +40,7 @@ type Props = {
 
 const EditorCanvasSidebar = ({ nodes }: Props) => {
   const { state } = useEditor()
-  // const { nodeConnection } = useNodeConnections()
+  const { nodeConnection } = useNodeConnections()
   // const { googleFile, setSlackChannels } = useFuzzieStore()
   // useEffect(() => {
   //   if (state) {
@@ -79,9 +84,9 @@ const EditorCanvasSidebar = ({ nodes }: Props) => {
                 key={cardKey}
                 draggable
                 className="w-full cursor-grab border-black bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-900"
-                // onDragStart={(event) =>
-                //   onDragStart(event, cardKey as EditorCanvasTypes)
-                // }
+                onDragStart={(event) =>
+                  onDragStart(event, cardKey as EditorCanvasTypes)
+                }
               >
                 <CardHeader className="flex flex-row items-center gap-4 p-4">
                   <EditorCanvasIconHelper type={cardKey as EditorCanvasTypes} />
@@ -109,16 +114,15 @@ const EditorCanvasSidebar = ({ nodes }: Props) => {
               <AccordionTrigger className="!no-underline">
                 Account
               </AccordionTrigger>
-              <h1> renderizar coneccion</h1>
-              {/* <AccordionContent>
+              <AccordionContent>
                 {CONNECTIONS.map((connection) => (
-                  // <RenderConnectionAccordion
-                  //   key={connection.title}
-                  //   state={state}
-                  //   connection={connection}
-                  // />
+                  <RenderConnectionAccordion
+                    key={connection.title}
+                    state={state}
+                    connection={connection}
+                  />
                 ))}
-              </AccordionContent> */}
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem
               value="Expected Output"
@@ -127,10 +131,10 @@ const EditorCanvasSidebar = ({ nodes }: Props) => {
               <AccordionTrigger className="!no-underline">
                 Action
               </AccordionTrigger>
-              {/* <RenderOutputAccordion
+              <RenderOutputAccordion
                 state={state}
                 nodeConnection={nodeConnection}
-              /> */}
+              />
             </AccordionItem>
           </Accordion>
         </TabsContent>

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Card, CardContent, CardDescription } from '@/components/ui/card'
+import { onAddTemplate } from '@/lib/editor-utils'
 // import { onAddTemplate } from '@/lib/editor-utils'
 import { ConnectionProviderProps } from '@/providers/connections-provider'
 import React from 'react'
@@ -13,7 +14,7 @@ const isGoogleFileNotEmpty = (file: any): boolean => {
   return Object.keys(file).length > 0 && file.kind !== ''
 }
 
-const GoogleFileDetails = ({ gFile, title }: Props) => {
+const GoogleFileDetails = ({nodeConnection, gFile, title }: Props) => {
   if (!isGoogleFileNotEmpty(gFile)) {
     return null
   }
@@ -30,8 +31,8 @@ const GoogleFileDetails = ({ gFile, title }: Props) => {
           {details.map((detail) => (
             <div
               key={detail}
-              onClick={() =>{}
-                // onAddTemplate(nodeConnection, title, gFile[detail])
+              onClick={() =>
+                onAddTemplate(nodeConnection, title, gFile[detail])
               }
               className="flex cursor-pointer gap-2 rounded-full bg-white px-3 py-1 text-gray-500"
             >

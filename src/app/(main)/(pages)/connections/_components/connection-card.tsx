@@ -45,7 +45,7 @@ const ConnectionCard = ({
       </CardHeader>
       <div className="flex flex-col items-center gap-2 p-4">
         {connected[type] ? (
-          <div className="border-bg-slate-50 rounded-lg border-2 px-3 py-2 font-bold">
+          <div className="rounded-lg px-3 py-2 font-bold text-white bg-green-700 hover:bg-green-800">
             Connected
           </div>
         ) : (
@@ -59,7 +59,7 @@ const ConnectionCard = ({
                 ? process.env.NEXT_PUBLIC_SLACK_REDIRECT!
                 : '#'
             }
-            className="border-slate-50 rounded-lg bg-primary p-2 font-bold"
+            className="border-slate-100 border-2 rounded-lg p-2 font-bold hover:bg-slate-100"
           >
             Connect
           </Link>

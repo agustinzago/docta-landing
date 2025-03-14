@@ -6,6 +6,18 @@ import Payment from "@/components/icons/payment";
 import Settings from "@/components/icons/settings";
 import Workflows from "@/components/icons/workflows";
 import { Connection } from "../types";
+import {
+  BookTemplateIcon,
+  CableIcon,
+  CreditCard,
+  HomeIcon,
+  LogsIcon,
+  LucideCloudLightning,
+  ScrollText,
+  SettingsIcon,
+  WorkflowIcon,
+} from "lucide-react";
+import { BsLightningCharge } from "react-icons/bs";
 
 export const clients = [...new Array(10)].map((client, index) => ({
   href: `/${index + 1}.png`,
@@ -92,14 +104,24 @@ export const products = [
   },
 ];
 
+// export const menuOptions = [
+//   { name: "Dashboard", Component: Home, href: "/dashboard" },
+//   { name: "Workflows", Component: Workflows, href: "/workflows" },
+//   { name: "Settings", Component: Settings, href: "/settings" },
+//   { name: "Connections", Component: Category, href: "/connections" },
+//   { name: "Billing", Component: Payment, href: "/billing" },
+//   { name: "Templates", Component: Templates, href: "/templates" },
+//   { name: "Logs", Component: Logs, href: "/logs" },
+// ];
+
 export const menuOptions = [
-  { name: "Dashboard", Component: Home, href: "/dashboard" },
-  { name: "Workflows", Component: Workflows, href: "/workflows" },
-  { name: "Settings", Component: Settings, href: "/settings" },
-  { name: "Connections", Component: Category, href: "/connections" },
-  { name: "Billing", Component: Payment, href: "/billing" },
-  { name: "Templates", Component: Templates, href: "/templates" },
-  { name: "Logs", Component: Logs, href: "/logs" },
+  { name: "Dashboard", Component: HomeIcon, href: "/dashboard" },
+  { name: "Workflows", Component: WorkflowIcon, href: "/workflows" },
+  { name: "Settings", Component: SettingsIcon, href: "/settings" },
+  { name: "Connections", Component: CableIcon, href: "/connections" },
+  { name: "Billing", Component: CreditCard, href: "/billing" },
+  { name: "Templates", Component: BookTemplateIcon, href: "/templates" },
+  { name: "Logs", Component: ScrollText, href: "/logs" },
 ];
 
 export const EditorCanvasDefaultCardTypes = {

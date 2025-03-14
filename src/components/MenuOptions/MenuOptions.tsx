@@ -50,9 +50,7 @@ const MenuOptions = () => {
                         }
                       )}
                     >
-                      <menuItem.Component
-                        selected={pathName === menuItem.href}
-                      />
+                      <menuItem.Component />
                     </Link>
                   </li>
                 </TooltipTrigger>
