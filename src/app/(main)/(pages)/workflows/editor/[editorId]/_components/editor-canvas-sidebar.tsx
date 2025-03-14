@@ -1,9 +1,7 @@
 'use client'
-// import { useNodeConnections } from '@/providers/connections-provider'
 import { useEditor } from '@/providers/editor-provider'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Separator } from '@/components/ui/separator'
 import { CONNECTIONS, EditorCanvasDefaultCardTypes } from '@/lib/constant'
 import {
@@ -12,11 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-// import {
-//   fetchBotSlackChannels,
-//   onConnections,
-//   onDragStart,
-// } from '@/lib/editor-utils'
 import EditorCanvasIconHelper from './editor-canvas-card-icon-hepler'
 import {
   Accordion,
@@ -25,14 +18,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
-// import RenderConnectionAccordion from './render-connection-accordion'
-// import RenderOutputAccordion from './render-output-accordian'
-// import { useFuzzieStore } from '@/store'
 import { EditorCanvasTypes, EditorNodeType } from '@/types'
 import { useNodeConnections } from '@/providers/connections-provider'
-import { onDragStart } from '@/lib/editor-utils'
+import { fetchBotSlackChannels, onConnections, onDragStart } from '@/lib/editor-utils'
 import RenderConnectionAccordion from './render-connection-accordion'
 import RenderOutputAccordion from './render-output-accordian'
+import { useFuzzieStore } from '@/store'
 
 type Props = {
   nodes: EditorNodeType[]
@@ -41,21 +32,21 @@ type Props = {
 const EditorCanvasSidebar = ({ nodes }: Props) => {
   const { state } = useEditor()
   const { nodeConnection } = useNodeConnections()
-  // const { googleFile, setSlackChannels } = useFuzzieStore()
-  // useEffect(() => {
-  //   if (state) {
-  //     onConnections(nodeConnection, state, googleFile)
-  //   }
-  // }, [state])
+  const { googleFile, setSlackChannels } = useFuzzieStore()
+  useEffect(() => {
+    if (state) {
+      onConnections(nodeConnection, state, googleFile)
+    }
+  }, [state])
 
-  // useEffect(() => {
-  //   if (nodeConnection.slackNode.slackAccessToken) {
-  //     fetchBotSlackChannels(
-  //       nodeConnection.slackNode.slackAccessToken,
-  //       setSlackChannels
-  //     )
-  //   }
-  // }, [nodeConnection])
+  useEffect(() => {
+    if (nodeConnection.slackNode.slackAccessToken) {
+      fetchBotSlackChannels(
+        nodeConnection.slackNode.slackAccessToken,
+        setSlackChannels
+      )
+    }
+  }, [nodeConnection])
 
   return (
     <aside>
