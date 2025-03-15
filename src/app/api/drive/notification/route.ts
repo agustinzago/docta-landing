@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
                 "https://api.cron-job.org/jobs",
                 {
                   job: {
-                    url: `${process.env.NGROK_URI}?flow_id=${flow.id}`,
+                    url: `${process.env.API_URI}?flow_id=${flow.id}`,
                     enabled: "true",
                     schedule: {
                       timezone: "Europe/Istanbul",

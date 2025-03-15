@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import Stripe from "stripe";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   const stripe = new Stripe(process.env.STRIPE_SECRET!, {
     typescript: true,
     apiVersion: "2025-02-24.acacia",
