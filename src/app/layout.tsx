@@ -9,6 +9,7 @@ import {
 import "./globals.css";
 import ModalProvider from "@/providers/modal-provider";
 import { Toaster } from "sonner";
+import { BillingProvider } from "@/providers/billing-provider";
 
 const manrope = Manrope({ subsets: ['latin'] });
 const sourceSans = Source_Sans_3({ subsets: ['latin'] });
@@ -50,9 +51,11 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${manrope.className} ${sourceSans.className} antialiased`}>
           {siteDetails.googleAnalyticsId && <GoogleAnalytics gaId={siteDetails.googleAnalyticsId} />}
-          <ModalProvider>
-            {children}
-          </ModalProvider>
+          <BillingProvider>
+            <ModalProvider>
+              {children}
+            </ModalProvider>
+          </BillingProvider>
           <Toaster />
         </body>
       </html>

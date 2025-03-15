@@ -59,7 +59,11 @@ const ContentBasedOnTitle = ({
       if (response) {
         console.log(response.data.message.files[0])
         toast.message("Fetched File")
-        setFile(response.data.message.files[0])
+        if(response.data.message.files[0]) {
+          setFile(response.data.message.files[0])
+        } else {
+          toast.error('No file found')
+        }
       } else {
         toast.error('Something went wrong')
       }
