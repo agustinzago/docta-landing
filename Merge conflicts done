@@ -1,0 +1,22 @@
+Update environment variables and redirect URIs for production deployment
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+#
+# interactive rebase in progress; onto bab7acf
+# Last command done (1 command done):
+#    pick 56e71c3 Update environment variables and redirect URIs for production deployment
+# Next commands to do (4 remaining commands):
+#    pick 6ae49cb Configure TypeScript and ESLint to ignore build errors; update payment API GET method signature
+#    picg 56fdb8b Update redirect URLs to use environment variable for dynamic configuration
+# You are currently rebasing branch 'docta-prod' on 'bab7acf'.
+#
+# Changes to be committed:
+#	modified:   .env.example
+#	modified:   README.md
+#	modified:   src/app/api/drive-activity/notification/route.ts
+#	modified:   src/app/api/drive-activity/route.ts
+#	modified:   src/app/api/drive/notification/route.ts
+#	modified:   src/app/api/drive/route.ts
+#	modified:   src/app/api/payment/route.ts
+
