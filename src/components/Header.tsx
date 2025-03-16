@@ -14,7 +14,6 @@ const Header: React.FC = () => {
     const toggleMenu = () => setIsOpen(!isOpen);
     const { isSignedIn } = useUser();
 
-    // Divide menu items into two halves
     const half = Math.ceil(menuItems.length / 2);
     const firstHalf = menuItems.slice(0, half);
     const secondHalf = menuItems.slice(half);
