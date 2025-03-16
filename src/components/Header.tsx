@@ -7,11 +7,12 @@ import { HiOutlineXMark, HiBars3 } from 'react-icons/hi2';
 import Container from './Container';
 import { menuItems } from '@/data/menuItems';
 import Image from 'next/image';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useUser } from '@clerk/nextjs';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
+    const { isSignedIn } = useUser();
 
     // Divide menu items into two halves
     const half = Math.ceil(menuItems.length / 2);
@@ -24,7 +25,7 @@ const Header: React.FC = () => {
                 <nav className="bg-slate-50 md:bg-transparent shadow-md md:shadow-none mx-auto flex items-center py-3 px-5 md:py-6">
                     
                     {/* Menú Desktop (Primera mitad) */}
-                    <ul className="hidden md:flex space-x-6 flex-1 justify-end">
+                    <ul className="hidden md:flex space-x-6 flex-1 justify-end items-center">
                         {firstHalf.map(item => (
                             <li key={item.text}>
                                 <Link 
@@ -39,8 +40,10 @@ const Header: React.FC = () => {
 
                     {/* Mobile: Container with flex structure */}
                     <div className="md:hidden flex items-center w-full">
-                        {/* Left space for balance */}
-                        <div className="w-10"></div>
+                        {/* Left space - UserButton para mobile */}
+                        <div className="w-10 flex items-center justify-center">
+                            {isSignedIn && <UserButton afterSignOutUrl="/" />}
+                        </div>
                         
                         {/* Logo centered */}
                         <div className="flex-1 flex justify-center">
@@ -118,7 +121,6 @@ const Header: React.FC = () => {
                     </ul>
                 </div>
             </Transition>
-            <UserButton />
         </header>
     );
 };

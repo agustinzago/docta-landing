@@ -21,12 +21,12 @@ const CTA: React.FC = () => {
                             <CTAButton 
                                 text="How AI can help" 
                                 url="/discover-ai"
-                                variant="primary"
+                                variant="secondary"
                             />
                             <CTAButton 
-                                text="Book a demo" 
+                                text="Start Playing" 
                                 url="/schedule-demo"
-                                variant="secondary"
+                                variant="primary"
                             />             
                         </div>
                     </div>

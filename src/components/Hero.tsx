@@ -5,10 +5,12 @@ import clsx from 'clsx';
 import { heroDetails } from '@/data/hero';
 import CTAButton from './CTAButton';
 import { siteDetails } from '@/data/siteDetails';
+import { currentUser } from '@clerk/nextjs/server';
 
 const gloria = Gloria_Hallelujah({ subsets: ['latin'], weight: '400' });
 
-const Hero: React.FC = () => {
+const Hero: React.FC = async () => {
+  const user  = await currentUser();
   return (
     <section className="relative flex flex-col items-center justify-center text-center pt-28 md:pt-40 pb-40 md:pb-60 px-5">
       {/* Background Grid */}
@@ -47,7 +49,7 @@ const Hero: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         <h1 className="manrope text-4xl md:text-5xl text-foreground leading-tight relative font-light">
           Automate with{' '}
-          <span className={clsx(gloria.className, 'text-primary text-4xl md:text-6xl font-bold relative')}>
+          <span className={clsx(gloria.className, 'text-black text-4xl md:text-6xl font-bold relative')}>
             {siteDetails.siteName}
             <span className="dot-container">
               <span className="dot dot1"></span>
@@ -60,8 +62,8 @@ const Hero: React.FC = () => {
 
         {/* Call To Actions */}
         <div className="mt-6 flex flex-col sm:flex-row items-center sm:gap-4 w-fit mx-auto mb-6">
-          <CTAButton text="How AI can help" url="/learn-ai" variant="primary" />
-          <CTAButton text="Book a demo" url="/book-demo" variant="secondary" />
+          <CTAButton text={ user ? 'Dashboard' : 'Get started'} url="/dashboard" variant="primary" />
+          <CTAButton text="How AI can help" url="/about" variant="secondary" />
         </div>
       </div>
 
