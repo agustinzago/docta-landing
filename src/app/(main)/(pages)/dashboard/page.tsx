@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { 
   Card, 
   CardContent, 
@@ -55,9 +56,12 @@ const DashboardPage = () => {
             <Button variant="outline" size="sm">
               <Calendar className="h-4 w-4 mr-2" /> Last 30 Days
             </Button>
-            <Button>
-              <Zap className="h-4 w-4 mr-2" /> New Workflow
-            </Button>
+            
+            <Link href="/workflows">
+              <Button>
+                <Zap className="h-4 w-4 mr-2" /> New Workflow
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -105,9 +109,11 @@ const DashboardPage = () => {
                 <CardHeader>
                   <CardTitle className="flex justify-between">
                     <span>Performance Overview</span>
-                    <Button variant="ghost" size="sm">
-                      <BarChart3 className="h-4 w-4 mr-1" /> View All
-                    </Button>
+                    <Link href="/analytics">
+                      <Button variant="ghost" size="sm">
+                        <BarChart3 className="h-4 w-4 mr-1" /> View All
+                      </Button>
+                    </Link>
                   </CardTitle>
                   <CardDescription>Workflow execution statistics for the last 30 days</CardDescription>
                 </CardHeader>
