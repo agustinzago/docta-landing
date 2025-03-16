@@ -1,23 +1,13 @@
-import Category from "@/components/icons/category";
-import Logs from "@/components/icons/clipboard";
-import Templates from "@/components/icons/cloud_download";
-import Home from "@/components/icons/home";
-import Payment from "@/components/icons/payment";
-import Settings from "@/components/icons/settings";
-import Workflows from "@/components/icons/workflows";
 import { Connection } from "../types";
 import {
-  BookTemplateIcon,
   CableIcon,
+  ChartAreaIcon,
   CreditCard,
   HomeIcon,
-  LogsIcon,
-  LucideCloudLightning,
   ScrollText,
   SettingsIcon,
   WorkflowIcon,
 } from "lucide-react";
-import { BsLightningCharge } from "react-icons/bs";
 
 export const clients = [...new Array(10)].map((client, index) => ({
   href: `/${index + 1}.png`,
@@ -120,7 +110,7 @@ export const menuOptions = [
   { name: "Settings", Component: SettingsIcon, href: "/settings" },
   { name: "Connections", Component: CableIcon, href: "/connections" },
   { name: "Billing", Component: CreditCard, href: "/billing" },
-  { name: "Templates", Component: BookTemplateIcon, href: "/templates" },
+  { name: "Analitics", Component: ChartAreaIcon, href: "/analitics" },
   { name: "Logs", Component: ScrollText, href: "/logs" },
 ];
 
