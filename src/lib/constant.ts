@@ -110,7 +110,7 @@ export const menuOptions = [
   { name: "Settings", Component: SettingsIcon, href: "/settings" },
   { name: "Connections", Component: CableIcon, href: "/connections" },
   { name: "Billing", Component: CreditCard, href: "/billing" },
-  { name: "Analitics", Component: ChartAreaIcon, href: "/analitics" },
+  { name: "Analytics", Component: ChartAreaIcon, href: "/analytics" },
   { name: "Logs", Component: ScrollText, href: "/logs" },
 ];
 
