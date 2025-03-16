@@ -43,7 +43,7 @@ const MenuOptions = () => {
                     <Link
                       href={menuItem.href}
                       className={clsx(
-                        'group h-8 w-8 flex items-center justify-center  scale-[1.5] rounded-lg p-[3px]  cursor-pointer',
+                        'group h-6 w-6 flex items-center justify-center  scale-[1.5] rounded-lg p-[3px]  cursor-pointer',
                         {
                           'dark:bg-primary bg-white ':
                             pathName === menuItem.href,
