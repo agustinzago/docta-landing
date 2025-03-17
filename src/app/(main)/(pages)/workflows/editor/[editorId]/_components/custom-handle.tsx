@@ -4,11 +4,6 @@ import { Handle, HandleProps } from 'reactflow'
 
 type Props = HandleProps & { style?: CSSProperties }
 
-const selector = ( s: any ) => ({
-  nodeInternals: s.nodeInternals,
-  edges: s.edges,
-})
-
 const CustomHandle = (props: Props) => {
   const { state } = useEditor()
 

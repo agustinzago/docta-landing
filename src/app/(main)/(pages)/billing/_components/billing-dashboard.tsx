@@ -8,18 +8,20 @@ import CreditTracker from './credits-tracker'
 import { Award, ShieldCheck, Info } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Skeleton } from '@/components/ui/skeleton'
+import Stripe from 'stripe'
 
 const BillingDashboard = () => {
   const { credits, tier } = useBilling()
-  const [stripeProducts, setStripeProducts] = useState<any>([])
+  const [stripeProducts, setStripeProducts] = useState<Stripe.Price[]>([])
   const [loading, setLoading] = useState<boolean>(true)
 
   const onStripeProducts = async () => {
     setLoading(true)
     try {
-      const { data } = await axios.get('/api/payment')
+      const { data } = await axios.get<Stripe.Price[]>('/api/payment')
       if (data) {
         setStripeProducts(data)
+        console.log('Stripe products:', stripeProducts)
       }
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -27,6 +29,7 @@ const BillingDashboard = () => {
       setLoading(false)
     }
   }
+
 
   useEffect(() => {
     onStripeProducts()

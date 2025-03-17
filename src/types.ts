@@ -1,4 +1,3 @@
-// import { ConnectionProviderProps } from '@/providers/connections-provider'
 import { z } from "zod";
 import { ConnectionProviderProps } from "./providers/connections-provider";
 
@@ -100,9 +99,12 @@ export type EditorCanvasCardType = {
   description: string;
   completed: boolean;
   current: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  metadata: any;
+  metadata: Metadata;
   type: EditorCanvasTypes;
+};
+
+export type Metadata = {
+  [key: string]: string;
 };
 
 export type EditorNodeType = {
@@ -150,3 +152,20 @@ export const nodeMapper: Record<string, string> = {
   Discord: "discordNode",
   "Google Drive": "googleNode",
 };
+
+export interface NodeState {
+  content: string;
+}
+
+export interface NotionNode {
+  databaseId: string;
+  accessToken: string;
+  content: string;
+}
+
+export interface NodeConnection {
+  discordNode: NodeState;
+  notionNode: NotionNode;
+  setDiscordNode: React.Dispatch<React.SetStateAction<NodeState>>;
+  setNotionNode: React.Dispatch<React.SetStateAction<NotionNode>>;
+}

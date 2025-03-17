@@ -7,7 +7,7 @@ import { postContentToWebHook } from '@/app/(main)/(pages)/connections/_actions/
 import { onCreateNodeTemplate } from '../../../_actions/workflow-connections'
 import { toast } from 'sonner'
 import { onCreateNewPageInDatabase } from '@/app/(main)/(pages)/connections/_actions/notion-connection'
-import { postMessageToSlack } from '@/app/(main)/(pages)/connections/_actions/slack-connection'
+import { NodeState, NotionNode } from '@/types'
 
 type Props = {
   currentService: string
@@ -20,7 +20,6 @@ const ActionButton = ({
   currentService,
   nodeConnection,
   channels,
-  setChannels,
 }: Props) => {
   const pathname = usePathname()
 
@@ -31,12 +30,12 @@ const ActionButton = ({
     )
 
     if (response.message == 'success') {
-      nodeConnection.setDiscordNode((prev: any) => ({
+      nodeConnection.setDiscordNode((prev: NodeState) => ({
         ...prev,
         content: '',
       }))
     }
-  }, [nodeConnection.discordNode])
+  }, [nodeConnection])
 
   const onStoreNotionContent = useCallback(async () => {
     console.log(
@@ -50,30 +49,12 @@ const ActionButton = ({
       nodeConnection.notionNode.content
     )
     if (response) {
-      nodeConnection.setNotionNode((prev: any) => ({
+      nodeConnection.setNotionNode((prev: NotionNode) => ({
         ...prev,
         content: '',
       }))
     }
-  }, [nodeConnection.notionNode])
-
-  const onStoreSlackContent = useCallback(async () => {
-    const response = await postMessageToSlack(
-      nodeConnection.slackNode.slackAccessToken,
-      channels!,
-      nodeConnection.slackNode.content
-    )
-    if (response.message == 'Success') {
-      toast.success('Message sent successfully')
-      nodeConnection.setSlackNode((prev: any) => ({
-        ...prev,
-        content: '',
-      }))
-      setChannels!([])
-    } else {
-      toast.error(response.message)
-    }
-  }, [nodeConnection.slackNode, channels])
+  }, [nodeConnection])
 
   const onCreateLocalNodeTempate = useCallback(async () => {
     if (currentService === 'Discord') {
@@ -115,7 +96,7 @@ const ActionButton = ({
         toast.message(response)
       }
     }
-  }, [nodeConnection, channels])
+  }, [nodeConnection, currentService, channels, pathname])
 
   const renderActionButton = () => {
     switch (currentService) {
@@ -155,23 +136,23 @@ const ActionButton = ({
           </>
         )
 
-      case 'Slack':
-        return (
-          <>
-            <Button
-              variant="outline"
-              onClick={onStoreSlackContent}
-            >
-              Send Message
-            </Button>
-            <Button
-              onClick={onCreateLocalNodeTempate}
-              variant="outline"
-            >
-              Save Template
-            </Button>
-          </>
-        )
+      // case 'Slack':
+      //   return (
+      //     <>
+      //       <Button
+      //         variant="outline"
+      //         onClick={onStoreSlackContent}
+      //       >
+      //         Send Message
+      //       </Button>
+      //       <Button
+      //         onClick={onCreateLocalNodeTempate}
+      //         variant="outline"
+      //       >
+      //         Save Template
+      //       </Button>
+      //     </>
+      //   )
 
       default:
         return null

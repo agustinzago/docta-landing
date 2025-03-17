@@ -8,30 +8,6 @@ import { EditorState } from "@/providers/editor-provider"
 import { useFuzzieStore } from "@/store"
 import { Connection } from "@/types"
 
-
-const frameworks = [
-  {
-    value: 'next.js',
-    label: 'Next.js',
-  },
-  {
-    value: 'sveltekit',
-    label: 'SvelteKit',
-  },
-  {
-    value: 'nuxt.js',
-    label: 'Nuxt.js',
-  },
-  {
-    value: 'remix',
-    label: 'Remix',
-  },
-  {
-    value: 'astro',
-    label: 'Astro',
-  },
-]
-
 const RenderConnectionAccordion = ({
   connection,
   state,
@@ -52,6 +28,7 @@ const RenderConnectionAccordion = ({
   const { nodeConnection } = useNodeConnections()
   const { slackChannels, selectedSlackChannels, setSelectedSlackChannels } =
     useFuzzieStore()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const connectionData = (nodeConnection as any)[connectionKey]
 
   const isConnected =

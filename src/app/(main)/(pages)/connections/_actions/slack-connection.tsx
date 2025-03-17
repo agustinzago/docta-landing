@@ -5,6 +5,18 @@ import { db } from '@/lib/db'
 import { currentUser } from '@clerk/nextjs/server'
 import axios from 'axios'
 
+interface SlackChannel {
+  id: string
+  name: string
+  is_member?: boolean
+}
+
+interface SlackAPIResponse {
+  ok: boolean
+  channels?: SlackChannel[]
+  error?: string
+}
+
 export const onSlackConnect = async (
   app_id: string,
   authed_user_id: string,
@@ -60,7 +72,7 @@ export async function listBotChannels(
   })}`
 
   try {
-    const { data } = await axios.get(url, {
+    const { data } = await axios.get<SlackAPIResponse>(url, {
       headers: { Authorization: `Bearer ${slackAccessToken}` },
     })
 
@@ -68,20 +80,21 @@ export async function listBotChannels(
 
     if (!data.ok) throw new Error(data.error)
 
-    if (!data?.channels?.length) return []
+    if (!data.channels || data.channels.length === 0) return []
 
     return data.channels
-      .filter((ch: any) => ch.is_member)
-      .map((ch: any) => {
-        return { label: ch.name, value: ch.id }
-      })
-  } catch (error: any) {
-    console.error('Error listing bot channels:', error.message)
+      .filter((ch) => ch.is_member)
+      .map((ch) => ({
+        label: ch.name,
+        value: ch.id,
+      }))
+  } catch (error) {
+    console.error('Error listing bot channels:', (error as Error).message)
     throw error
   }
 }
 
-const postMessageInSlackChannel = async (
+export const postMessageInSlackChannel = async (
   slackAccessToken: string,
   slackChannel: string,
   content: string
@@ -98,32 +111,10 @@ const postMessageInSlackChannel = async (
       }
     )
     console.log(`Message posted successfully to channel ID: ${slackChannel}`)
-  } catch (error: any) {
+  } catch (error) {
     console.error(
       `Error posting message to Slack channel ${slackChannel}:`,
-      error?.response?.data || error.message
+      (error as { response?: { data: { error?: string } } })?.response?.data || (error as Error).message
     )
   }
-}
-
-// Wrapper function to post messages to multiple Slack channels
-export const postMessageToSlack = async (
-  slackAccessToken: string,
-  selectedSlackChannels: Option[],
-  content: string
-): Promise<{ message: string }> => {
-  if (!content) return { message: 'Content is empty' }
-  if (!selectedSlackChannels?.length) return { message: 'Channel not selected' }
-
-  try {
-    selectedSlackChannels
-      .map((channel) => channel?.value)
-      .forEach((channel) => {
-        postMessageInSlackChannel(slackAccessToken, channel, content)
-      })
-  } catch (error) {
-    return { message: 'Message could not be sent to Slack' }
-  }
-
-  return { message: 'Success' }
 }

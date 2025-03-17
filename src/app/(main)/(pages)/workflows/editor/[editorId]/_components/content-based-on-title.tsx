@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+
 import { AccordionContent } from '@/components/ui/accordion'
 import { ConnectionProviderProps } from '@/providers/connections-provider'
 import { EditorState } from '@/providers/editor-provider'
@@ -26,9 +29,6 @@ export interface Option {
   fixed?: boolean
   /** Group the options by providing key. */
   [key: string]: string | boolean | undefined
-}
-interface GroupOption {
-  [key: string]: Option[]
 }
 
 type Props = {
@@ -69,9 +69,9 @@ const ContentBasedOnTitle = ({
       }
     }
     reqGoogle()
-  }, [])
+  }, [setFile])
 
-  // @ts-ignore
+  // @ts-expect-error auto-generated
   const nodeConnectionType: any = nodeConnection[nodeMapper[title]]
   if (!nodeConnectionType) return <p>Not connected</p>
 

@@ -10,10 +10,11 @@ import {
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Check, Zap, Infinity, Star } from 'lucide-react'
+import Stripe from 'stripe'
 
 type Props = {
   onPayment(id: string): void
-  products: any[]
+  products: Stripe.Price[]
   tier: string
 }
 
@@ -55,10 +56,10 @@ export const SubscriptionCard = ({ onPayment, products, tier }: Props) => {
   return (
     <section className="grid md:grid-cols-3 gap-6 w-full">
       {products &&
-        products.map((product: any) => {
+        products.map((product) => {
           const isCurrentPlan = product.nickname === tier;
-          const benefits = getBenefits(product.nickname);
-          const planIcon = getPlanIcon(product.nickname);
+          const benefits = getBenefits(product.nickname || '');
+          const planIcon = getPlanIcon(product.nickname || '');
           
           return (
             <Card

@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CONNECTIONS } from '@/lib/constant'
-import React from 'react'
 import ConnectionCard from './_components/connection-card'
 import { onDiscordConnect } from './_actions/discord-connection'
 import { onSlackConnect } from './_actions/slack-connection'
@@ -10,6 +8,7 @@ import { onNotionConnect } from './_actions/notion-connection'
 import { Button } from '@/components/ui/button'
 import { Plus, RefreshCw, Shield } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ConnectionTypes } from '@/types'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }
@@ -90,15 +89,14 @@ const Connections = async (props: Props) => {
       user.id
     )
 
-    const connections: any = {}
+    const connections: Record<ConnectionTypes, boolean> = {} as Record<ConnectionTypes, boolean>;
 
     const user_info = await getUserData(user.id)
 
     //get user info with all connections
-    user_info?.connections.map((connection) => {
-      connections[connection.type] = true
-      return (connections[connection.type] = true)
-    })
+user_info?.connections.forEach((connection) => {
+  connections[connection.type as ConnectionTypes] = true
+})
 
     // Google Drive connection will always be true
     // as it is given access during the login process
