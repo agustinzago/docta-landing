@@ -1,5 +1,6 @@
 import { Connection } from "../types";
 import {
+  Bot,
   CableIcon,
   ChartAreaIcon,
   CreditCard,
@@ -107,6 +108,7 @@ export const products = [
 export const menuOptions = [
   { name: "Dashboard", Component: HomeIcon, href: "/dashboard" },
   { name: "Workflows", Component: WorkflowIcon, href: "/workflows" },
+  { name: "Chatbot", Component: Bot, href: "/chatbot" },
   { name: "Settings", Component: SettingsIcon, href: "/settings" },
   { name: "Connections", Component: CableIcon, href: "/connections" },
   { name: "Billing", Component: CreditCard, href: "/billing" },
