@@ -1,0 +1,117 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                    Int                    @id @default(autoincrement())
+  email                 String                 @unique
+  name                  String?
+  profileImage          String?
+  password              String?                
+  salt                  String?                
+  googleId              String?                @unique
+  googleEmail           String?                
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  credits               String?                @default("10")
+  googleResourceId      String?                @unique
+  localGoogleId         String?                @unique
+  tier                  String?                @default("Free")
+  refreshToken          String?                
+  connections           Connections[]
+  DiscordWebhook        DiscordWebhook[]
+  LocalGoogleCredential LocalGoogleCredential?
+  Notion                Notion[]
+  Slack                 Slack[]
+  workflows             Workflows[]
+}
+
+model LocalGoogleCredential {
+  id          String   @id @default(uuid())
+  accessToken String   @unique
+  folderId    String?
+  pageToken   String?
+  channelId   String   @unique @default(uuid())
+  subscribed  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      Int      @unique
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model DiscordWebhook {
+  id          String        @id @default(uuid())
+  webhookId   String        @unique
+  url         String        @unique
+  name        String
+  guildName   String
+  guildId     String
+  channelId   String        @unique
+  userId      Int           // Cambiado a Int para relacionarse con el id del User
+  connections Connections[]
+  user        User          @relation(fields: [userId], references: [id])
+}
+
+model Slack {
+  id               String        @id @default(uuid())
+  appId            String
+  authedUserId     String
+  authedUserToken  String        @unique
+  slackAccessToken String        @unique
+  botUserId        String
+  teamId           String
+  teamName         String
+  userId           Int           // Cambiado a Int para relacionarse con el id del User
+  connections      Connections[]
+  User             User          @relation(fields: [userId], references: [id])
+}
+
+model Notion {
+  id            String        @id @default(uuid())
+  accessToken   String        @unique
+  workspaceId   String        @unique
+  databaseId    String        @unique
+  workspaceName String
+  workspaceIcon String
+  userId        Int           // Cambiado a Int para relacionarse con el id del User
+  connections   Connections[]
+  User          User          @relation(fields: [userId], references: [id])
+}
+
+model Connections {
+  id               String          @id @default(uuid())
+  type             String          @unique
+  discordWebhookId String?
+  notionId         String?
+  userId           Int?            // Cambiado a Int para relacionarse con el id del User
+  slackId          String?
+  DiscordWebhook   DiscordWebhook? @relation(fields: [discordWebhookId], references: [id])
+  Notion           Notion?         @relation(fields: [notionId], references: [id])
+  Slack            Slack?          @relation(fields: [slackId], references: [id])
+  User             User?           @relation(fields: [userId], references: [id])
+}
+
+model Workflows {
+  id                String   @id @default(uuid())
+  nodes             String?
+  edges             String?
+  name              String
+  discordTemplate   String?
+  notionTemplate    String?
+  slackTemplate     String?
+  slackChannels     String[]
+  slackAccessToken  String?
+  notionAccessToken String?
+  notionDbId        String?
+  flowPath          String?
+  cronPath          String?
+  publish           Boolean? @default(false)
+  description       String
+  userId            Int      // Cambiado a Int para relacionarse con el id del User
+  User              User     @relation(fields: [userId], references: [id])
+}

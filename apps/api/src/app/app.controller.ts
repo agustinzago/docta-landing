@@ -1,12 +1,22 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller('test')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getData() {
-    return this.appService.getData();
+  @Get('env')
+  getEnv() {
+    return {
+      databaseUrl: process.env.DATABASE_URL || 'No DATABASE_URL found',
+    };
+  }
+  @Get('db')
+  async testDatabase() {
+    return this.appService.testDatabaseConnection();
+  }
+  @Get('hello')
+  getHello() {
+    return { message: 'Hello World!' };
   }
 }

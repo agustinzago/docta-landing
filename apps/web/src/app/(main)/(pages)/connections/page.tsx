@@ -3,12 +3,12 @@ import ConnectionCard from './_components/connection-card'
 import { onDiscordConnect } from './_actions/discord-connection'
 import { onSlackConnect } from './_actions/slack-connection'
 import { getUserData } from './_actions/get-user'
-import { currentUser } from '@clerk/nextjs/server'
 import { onNotionConnect } from './_actions/notion-connection'
 import { Button } from '@/components/ui/button'
 import { Plus, RefreshCw, Shield } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectionTypes } from '@/types'
+import { currentUser } from '@clerk/nextjs/server'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }
