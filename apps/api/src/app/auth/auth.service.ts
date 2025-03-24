@@ -18,15 +18,10 @@ export class AuthService {
   ) {}
 
   async signIn(user: User) {
-    // Verificar que el usuario existe
     const userExists = await this.userService.findByEmail(user.email);
-
     if (!userExists) {
-      // Si no existe, lo creamos (para casos de autenticación OAuth)
       return await this.registerUser(user);
     }
-
-    // Generar JWT para usuario existente
     return this.generateToken(userExists);
   }
 
@@ -34,38 +29,22 @@ export class AuthService {
     email: string,
     password: string
   ): Promise<User | null> {
-    // Buscar usuario por email
     const user = await this.userService.findByEmail(email);
+    if (!user || !user.password) return null;
 
-    if (!user || !user.password) {
-      return null;
-    }
-
-    // Verificar contraseña
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    return user;
+    return isPasswordValid ? user : null;
   }
 
   async registerUser(userData: Partial<User>) {
     try {
-      // Verificar que el email existe
-      if (!userData.email) {
+      if (!userData.email)
         throw new BadRequestException('El email es requerido');
-      }
 
-      // Verificar si ya existe un usuario con ese email
       const existingUser = await this.userService.findByEmail(userData.email);
-
-      if (existingUser) {
+      if (existingUser)
         throw new BadRequestException('Ya existe un usuario con ese email');
-      }
 
-      // Crear un nuevo usuario
       const newUser = await this.prisma.user.create({
         data: {
           email: userData.email,
@@ -76,37 +55,33 @@ export class AuthService {
           refreshToken: userData.refreshToken,
           tier: userData.tier || 'Free',
           credits: userData.credits || '10',
-          // Si es registro tradicional y hay password, lo hasheamos
           ...(userData.password && {
             password: await this.hashPassword(userData.password),
           }),
         },
       });
 
-      // Generar token para el nuevo usuario
       return this.generateToken(new User(newUser));
     } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-
+      if (error instanceof BadRequestException) throw error;
       console.error('Error al registrar usuario:', error);
       throw new BadRequestException('No se pudo crear el usuario');
     }
   }
 
   async generateToken(user: User) {
-    // Definimos el payload del JWT
-    const payload = {
-      sub: user.id,
-      email: user.email,
-    };
+    const payload = { sub: user.id, email: user.email };
 
-    // Generamos el token
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '15m',
+    });
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      expiresIn: '7d',
+    });
 
     return {
       accessToken,
+      refreshToken,
       user: {
         id: user.id,
         email: user.email,
@@ -118,6 +93,19 @@ export class AuthService {
     };
   }
 
+  async generateAccessToken(user: User): Promise<string> {
+    const payload = { sub: user.id, email: user.email };
+    return this.jwtService.signAsync(payload, { expiresIn: '15m' });
+  }
+
+  async validateRefreshToken(token: string): Promise<any> {
+    try {
+      return await this.jwtService.verifyAsync(token);
+    } catch {
+      return null;
+    }
+  }
+
   private async hashPassword(password: string): Promise<string> {
     const salt = await bcrypt.genSalt();
     return bcrypt.hash(password, salt);
@@ -125,5 +113,9 @@ export class AuthService {
 
   async validateJwtPayload(payload: any): Promise<User | null> {
     return this.userService.findOne(payload.sub);
+  }
+
+  async validateUserByEmail(email: string): Promise<User | null> {
+    return this.userService.findByEmail(email);
   }
 }

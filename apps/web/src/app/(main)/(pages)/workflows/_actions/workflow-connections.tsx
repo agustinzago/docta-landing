@@ -1,15 +1,17 @@
 'use server'
 import { Option } from '@/components/ui/multiple-selector'
+import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/lib/db'
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { cookies } from 'next/headers'
 
 export const getGoogleListener = async () => {
-  const { userId } = await auth()
+  const cookieStore = cookies();
+  const userId = cookieStore.get('user_id')?.value;
 
   if (userId) {
     const listener = await db.user.findUnique({
       where: {
-        clerkId: userId,
+        id: parseInt(userId),
       },
       select: {
         googleResourceId: true,
@@ -136,7 +138,7 @@ export const onCreateNodeTemplate = async (
 }
 
 export const onGetWorkflows = async () => {
-  const user = await currentUser()
+  const { user } = await useAuth()
   if (user) {
     const workflow = await db.workflows.findMany({
       where: {
@@ -149,8 +151,7 @@ export const onGetWorkflows = async () => {
 }
 
 export const onCreateWorkflow = async (name: string, description: string) => {
-  const user = await currentUser()
-
+  const { user } = await useAuth()
   if (user) {
     //create new workflow
     const workflow = await db.workflows.create({

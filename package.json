@@ -5,7 +5,11 @@
   "scripts": {
     "dev": "nx run-many --target=serve --projects=web,api --parallel",
     "dev:api": "nx run api:serve",
-    "dev:web": "nx run web:serve"
+    "dev:web": "nx run web:serve",
+    "db:studio": "pnpx prisma studio --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
+    "db:generate": "pnpx prisma generate --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
+    "db:migrate": "pnpx prisma migrate dev --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
+    "db:pull": "pnpx prisma db pull --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma"
   },
   "private": true,
   "devDependencies": {
@@ -15,6 +19,7 @@
     "@nestjs/cli": "^11.0.5",
     "@nestjs/schematics": "^10.0.1",
     "@nestjs/testing": "^10.0.2",
+    "@next/eslint-plugin-next": "^15.2.3",
     "@nx/devkit": "20.6.2",
     "@nx/eslint": "20.6.2",
     "@nx/eslint-plugin": "20.6.2",

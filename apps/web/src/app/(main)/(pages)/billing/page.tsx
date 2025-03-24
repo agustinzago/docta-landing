@@ -1,10 +1,10 @@
 import React from 'react'
 import Stripe from 'stripe'
-import { currentUser } from '@clerk/nextjs/server'
 import { db } from '@/lib/db'
 import BillingDashboard from './_components/billing-dashboard'
 import { CreditCard, Receipt, History } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useAuth } from '@/hooks/useAuth'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }
@@ -21,11 +21,11 @@ const Billing = async (props: Props) => {
     })
 
     const session = await stripe.checkout.sessions.listLineItems(session_id)
-    const user = await currentUser()
+    const {user} = useAuth()
     if (user) {
       await db.user.update({
         where: {
-          clerkId: user.id,
+          id: user.id,
         },
         data: {
           tier: session.data[0].description,

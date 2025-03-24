@@ -5,12 +5,12 @@ import clsx from 'clsx';
 import { heroDetails } from '@/data/hero';
 import CTAButton from './CTAButton';
 import { siteDetails } from '@/data/siteDetails';
-import { currentUser } from '@clerk/nextjs/server';
+import { useAuth } from '@/hooks/useAuth';
 
 const gloria = Gloria_Hallelujah({ subsets: ['latin'], weight: '400' });
 
 const Hero: React.FC = async () => {
-  const user  = await currentUser();
+  const { user }  = await useAuth();
   return (
     <section className="relative flex flex-col items-center justify-center text-center pt-28 md:pt-40 pb-40 md:pb-60 px-5">
       {/* Background Grid */}

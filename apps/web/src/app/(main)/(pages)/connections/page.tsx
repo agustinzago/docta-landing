@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, RefreshCw, Shield } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ConnectionTypes } from '@/types'
-import { currentUser } from '@clerk/nextjs/server'
+import { useAuth } from '@/hooks/useAuth'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }
@@ -55,7 +55,7 @@ const Connections = async (props: Props) => {
     team_name: '',
   }
 
-  const user = await currentUser()
+  const { user } = await useAuth()  
   if (!user) return null
 
   const onUserConnections = async () => {
@@ -65,7 +65,7 @@ const Connections = async (props: Props) => {
       webhook_id!,
       webhook_name!,
       webhook_url!,
-      user.id,
+      String(user.id),
       guild_name!,
       guild_id!
     )
@@ -75,7 +75,7 @@ const Connections = async (props: Props) => {
       workspace_icon!,
       workspace_name!,
       database_id!,
-      user.id
+      String(user.id)
     )
 
     await onSlackConnect(
@@ -86,7 +86,7 @@ const Connections = async (props: Props) => {
       bot_user_id!,
       team_id!,
       team_name!,
-      user.id
+      String(user.id)
     )
 
     const connections: Record<ConnectionTypes, boolean> = {} as Record<ConnectionTypes, boolean>;

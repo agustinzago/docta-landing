@@ -1,7 +1,7 @@
 'use server'
 
+import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/lib/db'
-import { currentUser } from '@clerk/nextjs/server'
 import { Client } from '@notionhq/client'
 
 export const onNotionConnect = async (
@@ -32,7 +32,7 @@ export const onNotionConnect = async (
       //create connection
       await db.notion.create({
         data: {
-          userId: id,
+          userId: parseInt(id),
           workspaceIcon: workspace_icon!,
           accessToken: access_token,
           workspaceId: workspace_id!,
@@ -40,7 +40,7 @@ export const onNotionConnect = async (
           databaseId: database_id,
           connections: {
             create: {
-              userId: id,
+              userId: parseInt(id),
               type: 'Notion',
             },
           },
@@ -50,7 +50,7 @@ export const onNotionConnect = async (
   }
 }
 export const getNotionConnection = async () => {
-  const user = await currentUser()
+  const { user } = await useAuth()
   if (user) {
     const connection = await db.notion.findFirst({
       where: {

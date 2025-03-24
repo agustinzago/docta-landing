@@ -7,16 +7,61 @@ import { HiOutlineXMark, HiBars3 } from 'react-icons/hi2';
 import Container from './Container';
 import { menuItems } from '@/data/menuItems';
 import Image from 'next/image';
-import { UserButton, useUser } from '@clerk/nextjs';
+import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from './ui/dropdown-menu';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
-    const { isSignedIn } = useUser();
+    const { user, loading, logout } = useAuth();
+    
+    // Determinar si el usuario está autenticado
+    const isSignedIn = !!user;
 
     const half = Math.ceil(menuItems.length / 2);
     const firstHalf = menuItems.slice(0, half);
     const secondHalf = menuItems.slice(half);
+
+    const UserButton = () => (
+        <DropdownMenu>
+            <DropdownMenuTrigger className="focus:outline-none">
+                <Avatar className="h-9 w-9 cursor-pointer">
+                    <AvatarImage 
+                        src={user?.profileImage || ''} 
+                        alt={user?.name || 'User'} 
+                    />
+                    <AvatarFallback>
+                        {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/profile">Perfil</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                    <Link href="/settings">Configuración</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
+                    Cerrar sesión
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 
     return (
         <header className="bg-transparent md:bg-transparent fixed md:absolute top-0 left-0 right-0 z-50 w-full">
@@ -41,7 +86,7 @@ const Header: React.FC = () => {
                     <div className="md:hidden flex items-center w-full">
                         {/* Left space - UserButton para mobile */}
                         <div className="w-10 flex items-center justify-center">
-                            {isSignedIn && <UserButton afterSignOutUrl="/" />}
+                            {isSignedIn && <UserButton />}
                         </div>
                         
                         {/* Logo centered */}
@@ -86,7 +131,7 @@ const Header: React.FC = () => {
                     </div>
 
                     {/* Menú Desktop (Segunda mitad) */}
-                    <ul className="hidden md:flex space-x-6 flex-1 justify-start">
+                    <ul className="hidden md:flex space-x-6 flex-1 justify-start items-center">
                         {secondHalf.map(item => (
                             <li key={item.text}>
                                 <Link href={item.url} className="text-foreground hover:text-foreground-accent transition-colors">
@@ -94,6 +139,21 @@ const Header: React.FC = () => {
                                 </Link>
                             </li>
                         ))}
+                        {/* Añadir UserButton o botones de Iniciar/Registrar */}
+                        <li className="ml-4">
+                            {isSignedIn ? (
+                                <UserButton />
+                            ) : (
+                                <div className="flex space-x-2">
+                                    <Link href="/sign-in" className="px-3 py-1 rounded-md border border-primary hover:bg-primary hover:text-white transition-colors">
+                                        Iniciar sesión
+                                    </Link>
+                                    <Link href="/sign-up" className="px-3 py-1 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors">
+                                        Registrarse
+                                    </Link>
+                                </div>
+                            )}
+                        </li>
                     </ul>
                 </nav>
             </Container>
@@ -117,6 +177,21 @@ const Header: React.FC = () => {
                                 </Link>
                             </li>
                         ))}
+                        {/* Añadir botones de inicio de sesión/registro si no está autenticado */}
+                        {!isSignedIn && (
+                            <>
+                                <li className="pt-2">
+                                    <Link href="/sign-in" className="block w-full py-2 text-center rounded-md border border-primary hover:bg-primary hover:text-white transition-colors" onClick={toggleMenu}>
+                                        Iniciar sesión
+                                    </Link>
+                                </li>
+                                <li>
+                                    <Link href="/sign-up" className="block w-full py-2 text-center rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" onClick={toggleMenu}>
+                                        Registrarse
+                                    </Link>
+                                </li>
+                            </>
+                        )}
                     </ul>
                 </div>
             </Transition>

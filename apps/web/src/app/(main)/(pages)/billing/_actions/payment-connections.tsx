@@ -1,15 +1,14 @@
 'use server'
 
+import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/lib/db'
-import { currentUser } from '@clerk/nextjs/server'
 
 export const onPaymentDetails = async () => {
-  const user = await currentUser()
-
+  const { user } = await useAuth()
   if (user) {
     const connection = await db.user.findFirst({
       where: {
-        clerkId: user.id,
+        id: user.id,
       },
       select: {
         tier: true,

@@ -1,18 +1,18 @@
 import { db } from '@/lib/db'
 import React from 'react'
 import ProfilePicture from './_components/ProfilePictre'
-import { currentUser } from '@clerk/nextjs/server'
 import ProfileForm from '@/components/forms/profile-form'
+import { useAuth } from '@/hooks/useAuth'
 
 const Settings = async () => {
-  const authUser = await currentUser();
-  if (!authUser) {
+  const authUser = await useAuth();
+  if (!authUser || !authUser.user) {
     return null
   }
 
   const user = await db.user.findUnique({
     where: {
-      clerkId: authUser.id,
+      id: authUser.user?.id,
     },
   })
 
@@ -21,7 +21,7 @@ const Settings = async () => {
     try {
       await db.user.update({
         where: {
-          clerkId: authUser.id,
+          id: authUser.user?.id,
         },
         data: {
           profileImage: '',
@@ -39,7 +39,7 @@ const Settings = async () => {
 
     const updateUser = await db.user.update({
       where: {
-        clerkId: authUser.id,
+        id: authUser.user?.id,
       },
       data: {
         name,
@@ -54,7 +54,7 @@ const Settings = async () => {
     try {
       await db.user.update({
         where: {
-          clerkId: authUser.id,
+          id: authUser.user?.id,
         },
         data: {
           profileImage: image,

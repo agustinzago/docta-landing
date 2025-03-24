@@ -1,8 +1,8 @@
 'use server'
 
 import { Option } from '@/components/ui/multiple-selector'
+import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/lib/db'
-import { currentUser } from '@clerk/nextjs/server'
 import axios from 'axios'
 
 interface SlackChannel {
@@ -37,7 +37,7 @@ export const onSlackConnect = async (
   if (!slackConnection) {
     await db.slack.create({
       data: {
-        userId: user_id,
+        userId: parseInt(user_id),
         appId: app_id,
         authedUserId: authed_user_id,
         authedUserToken: authed_user_token,
@@ -46,7 +46,7 @@ export const onSlackConnect = async (
         teamId: team_id,
         teamName: team_name,
         connections: {
-          create: { userId: user_id, type: 'Slack' },
+          create: { userId: parseInt(user_id), type: 'Slack' },
         },
       },
     })
@@ -54,7 +54,7 @@ export const onSlackConnect = async (
 }
 
 export const getSlackConnection = async () => {
-  const user = await currentUser()
+  const { user } = await useAuth()
   if (user) {
     return await db.slack.findFirst({
       where: { userId: user.id },
