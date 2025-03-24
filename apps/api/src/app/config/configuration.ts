@@ -10,6 +10,8 @@ export default registerAs('config', () => ({
   jwt: {
     secret: process.env.JWT_SECRET,
     expiration: process.env.JWT_EXPIRATION,
+    refresh: process.env.JWT_REFRESH_TOKEN_KEY,
+    refreshExpiration: process.env.JWT_REFRESH_TOKEN_EXPIRATION,
   },
   database: {
     url: process.env.DATABASE_URL,
