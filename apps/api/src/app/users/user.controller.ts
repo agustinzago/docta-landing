@@ -40,7 +40,7 @@ export class UserController {
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
-    return this.userService.findOne(Number(id));
+    return this.userService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -49,23 +49,17 @@ export class UserController {
     @Param('id') id: string,
     @Body() updateUserDto: UpdateUserDto
   ): Promise<User> {
-    // Validar que el ID proporcionado sea un número
-    const userId = Number(id);
-    if (isNaN(userId)) {
-      throw new BadRequestException('User ID must be a number');
-    }
-
     // Verificar si el email ya está en uso si se intenta actualizar
     if (updateUserDto.email) {
       const existingUser = await this.userService.findByEmail(
         updateUserDto.email
       );
-      if (existingUser && existingUser.id !== userId) {
+      if (existingUser && existingUser.id !== id) {
         throw new BadRequestException('Email already in use');
       }
     }
 
-    return this.userService.update(userId, updateUserDto);
+    return this.userService.update(id, updateUserDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -73,15 +67,10 @@ export class UserController {
   async remove(
     @Param('id') id: string
   ): Promise<{ success: boolean; message: string }> {
-    const userId = Number(id);
-    if (isNaN(userId)) {
-      throw new BadRequestException('User ID must be a number');
-    }
-
-    await this.userService.remove(userId);
+    await this.userService.remove(id);
     return {
       success: true,
-      message: `User with ID ${userId} has been successfully deleted`,
+      message: `User with ID ${id} has been successfully deleted`,
     };
   }
 }

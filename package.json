@@ -9,7 +9,9 @@
     "db:studio": "pnpx prisma studio --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
     "db:generate": "pnpx prisma generate --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
     "db:migrate": "pnpx prisma migrate dev --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
-    "db:pull": "pnpx prisma db pull --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma"
+    "db:push": "pnpx prisma db push --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
+    "db:pull": "pnpx prisma db pull --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
+    "db:reset": "pnpx prisma migrate reset --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma"
   },
   "private": true,
   "devDependencies": {

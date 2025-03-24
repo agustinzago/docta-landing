@@ -32,7 +32,7 @@ export const onNotionConnect = async (
       //create connection
       await db.notion.create({
         data: {
-          userId: parseInt(id),
+          userId: id,
           workspaceIcon: workspace_icon!,
           accessToken: access_token,
           workspaceId: workspace_id!,
@@ -40,7 +40,7 @@ export const onNotionConnect = async (
           databaseId: database_id,
           connections: {
             create: {
-              userId: parseInt(id),
+              userId: id,
               type: 'Notion',
             },
           },

@@ -37,7 +37,7 @@ export const onSlackConnect = async (
   if (!slackConnection) {
     await db.slack.create({
       data: {
-        userId: parseInt(user_id),
+        userId: user_id,
         appId: app_id,
         authedUserId: authed_user_id,
         authedUserToken: authed_user_token,
@@ -46,7 +46,7 @@ export const onSlackConnect = async (
         teamId: team_id,
         teamName: team_name,
         connections: {
-          create: { userId: parseInt(user_id), type: 'Slack' },
+          create: { userId: user_id, type: 'Slack' },
         },
       },
     })

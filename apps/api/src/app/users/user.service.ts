@@ -10,7 +10,7 @@ import * as bcrypt from 'bcryptjs';
 export class UserService {
   constructor(private prisma: PrismaService, private jwtService: JwtService) {}
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: {
@@ -39,11 +39,16 @@ export class UserService {
   }
 
   async findByGoogleId(googleId: string): Promise<User | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { googleId },
-    });
-
-    return user ? new User(user) : null;
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { googleId },
+      });
+      return user ? new User(user) : null;
+    } catch (error) {
+      console.error('Error en findByGoogleId:', error);
+      // Re-lanzar para manejo adecuado en la capa superior
+      throw error;
+    }
   }
 
   async findAll(): Promise<User[]> {
@@ -68,7 +73,7 @@ export class UserService {
     return new User(user);
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     // Si hay cambio de contraseña, actualizamos el hash
     if (updateUserDto.password) {
       const salt = await bcrypt.genSalt();
@@ -99,7 +104,7 @@ export class UserService {
     }
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: string): Promise<void> {
     try {
       await this.prisma.user.delete({
         where: { id },

@@ -11,7 +11,7 @@ export const getGoogleListener = async () => {
   if (userId) {
     const listener = await db.user.findUnique({
       where: {
-        id: parseInt(userId),
+        id: userId,
       },
       select: {
         googleResourceId: true,

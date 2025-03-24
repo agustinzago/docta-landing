@@ -18,7 +18,7 @@ export const onDiscordConnect = async (
     //check if webhook exists in database with userid
     const webhook = await db.discordWebhook.findFirst({
       where: {
-        userId: parseInt(id),
+        userId: id,
       },
       include: {
         connections: {
@@ -34,7 +34,7 @@ export const onDiscordConnect = async (
       //create new webhook
       await db.discordWebhook.create({
         data: {
-          userId: parseInt(id),
+          userId: id,
           webhookId: webhook_id,
           channelId: channel_id!,
           guildId: guild_id!,
@@ -43,7 +43,7 @@ export const onDiscordConnect = async (
           guildName: guild_name!,
           connections: {
             create: {
-              userId: parseInt(id),
+              userId: id,
               type: 'Discord',
             },
           },
@@ -71,7 +71,7 @@ export const onDiscordConnect = async (
       if (!webhook_channel) {
         await db.discordWebhook.create({
           data: {
-            userId: parseInt(id),
+            userId: id,
             webhookId: webhook_id,
             channelId: channel_id!,
             guildId: guild_id!,
@@ -80,7 +80,7 @@ export const onDiscordConnect = async (
             guildName: guild_name!,
             connections: {
               create: {
-                userId: parseInt(id),
+                userId: id,
                 type: 'Discord',
               },
             },
@@ -96,7 +96,7 @@ export const getDiscordConnectionUrl = async () => {
   if (user) {
     const webhook = await db.discordWebhook.findFirst({
       where: {
-        userId: user.id,
+        userId: String(user.id),
       },
       select: {
         url: true,

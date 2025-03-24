@@ -8,7 +8,7 @@ datasource db {
 }
 
 model User {
-  id                    Int                    @id @default(autoincrement())
+  id                    String                 @id @default(uuid())  // Cambiado de Int a String con UUID
   email                 String                 @unique
   name                  String?
   profileImage          String?
@@ -40,7 +40,7 @@ model LocalGoogleCredential {
   subscribed  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  userId      Int      @unique
+  userId      String   @unique  // Cambiado de Int a String
   user        User     @relation(fields: [userId], references: [id])
 }
 
@@ -52,7 +52,7 @@ model DiscordWebhook {
   guildName   String
   guildId     String
   channelId   String        @unique
-  userId      Int           // Cambiado a Int para relacionarse con el id del User
+  userId      String        // Cambiado de Int a String
   connections Connections[]
   user        User          @relation(fields: [userId], references: [id])
 }
@@ -66,7 +66,7 @@ model Slack {
   botUserId        String
   teamId           String
   teamName         String
-  userId           Int           // Cambiado a Int para relacionarse con el id del User
+  userId           String        // Cambiado de Int a String
   connections      Connections[]
   User             User          @relation(fields: [userId], references: [id])
 }
@@ -78,7 +78,7 @@ model Notion {
   databaseId    String        @unique
   workspaceName String
   workspaceIcon String
-  userId        Int           // Cambiado a Int para relacionarse con el id del User
+  userId        String        // Cambiado de Int a String
   connections   Connections[]
   User          User          @relation(fields: [userId], references: [id])
 }
@@ -88,7 +88,7 @@ model Connections {
   type             String          @unique
   discordWebhookId String?
   notionId         String?
-  userId           Int?            // Cambiado a Int para relacionarse con el id del User
+  userId           String?         // Cambiado de Int a String
   slackId          String?
   DiscordWebhook   DiscordWebhook? @relation(fields: [discordWebhookId], references: [id])
   Notion           Notion?         @relation(fields: [notionId], references: [id])
@@ -112,6 +112,6 @@ model Workflows {
   cronPath          String?
   publish           Boolean? @default(false)
   description       String
-  userId            Int      // Cambiado a Int para relacionarse con el id del User
+  userId            String   // Cambiado de Int a String
   User              User     @relation(fields: [userId], references: [id])
 }

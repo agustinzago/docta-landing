@@ -8,7 +8,7 @@ import { User } from '../../users/entities/user.entity';
 import configuration from '../../config/configuration';
 
 export type JwtPayload = {
-  sub: number;
+  sub: string;
   email: string;
 };
 

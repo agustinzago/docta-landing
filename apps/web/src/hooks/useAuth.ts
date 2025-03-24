@@ -1,11 +1,11 @@
-'use client'
+'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   name: string;
   profileImage?: string;
