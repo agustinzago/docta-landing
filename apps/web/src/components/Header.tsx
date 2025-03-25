@@ -7,7 +7,6 @@ import { HiOutlineXMark, HiBars3 } from 'react-icons/hi2';
 import Container from './Container';
 import { menuItems } from '@/data/menuItems';
 import Image from 'next/image';
-import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { 
   DropdownMenu, 
@@ -17,11 +16,18 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from './ui/dropdown-menu';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
-    const { user, loading, logout } = useAuth();
+    const router = useRouter();
+    
+    // Usando useSession de NextAuth
+    const { data: session, status } = useSession();
+    const loading = status === 'loading';
+    const user = session?.user;
     
     // Determinar si el usuario está autenticado
     const isSignedIn = !!user;
@@ -30,12 +36,19 @@ const Header: React.FC = () => {
     const firstHalf = menuItems.slice(0, half);
     const secondHalf = menuItems.slice(half);
 
+    // Función para cerrar sesión con NextAuth
+    const handleLogout = async () => {
+        await signOut({ redirect: false });
+        router.push('/');
+        router.refresh();
+    };
+
     const UserButton = () => (
         <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar className="h-9 w-9 cursor-pointer">
                     <AvatarImage 
-                        src={user?.profileImage || ''} 
+                        src={user?.image || ''} 
                         alt={user?.name || 'User'} 
                     />
                     <AvatarFallback>
@@ -56,7 +69,7 @@ const Header: React.FC = () => {
                     <Link href="/settings">Configuración</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-500">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500">
                     Cerrar sesión
                 </DropdownMenuItem>
             </DropdownMenuContent>

@@ -57,7 +57,7 @@ const AuthLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <div className="flex-1 flex items-center justify-center p-4 md:p-8 relative z-10">
         <div className="w-full max-w-md">
           {/* Auth Form Container */}
-          <div className="bg-card/90 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-md border border-muted">
+          <div className="bg-card/90 backdrop-blur-sm rounded-xl p-6 md:p-8 shadow-md border border-muted bg-gradient-to-br from-slate-50 to-slate-100">
             {children}
           </div>
           

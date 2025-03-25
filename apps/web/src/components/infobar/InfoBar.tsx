@@ -10,18 +10,18 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { useBilling } from '@/providers/billing-provider'
-import { onPaymentDetails } from '@/app/(main)/(pages)/billing/_actions/payment-connections'
+// import { onPaymentDetails } from '@/app/(main)/(pages)/billing/_actions/payment-connections'
 
 
 const InfoBar = () => {
   const { credits, tier, setCredits, setTier } = useBilling()
 
   const onGetPayment = async (): Promise<void> => {
-    const response = await onPaymentDetails()
-    if (response) {
-      setTier(response.tier!)
-      setCredits(response.credits!)
-    }
+    // const response = await onPaymentDetails()
+    // if (response) {
+    //   setTier(response.tier!)
+    //   setCredits(response.credits!)
+    // }
   }
 
   useEffect(() => {

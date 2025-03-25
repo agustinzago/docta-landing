@@ -1,6 +1,5 @@
 'use server'
 import { Option } from '@/components/ui/multiple-selector'
-import { useAuth } from '@/hooks/useAuth'
 import { db } from '@/lib/db'
 import { cookies } from 'next/headers'
 
@@ -138,33 +137,33 @@ export const onCreateNodeTemplate = async (
 }
 
 export const onGetWorkflows = async () => {
-  const { user } = await useAuth()
-  if (user) {
-    const workflow = await db.workflows.findMany({
-      where: {
-        userId: user.id,
-      },
-    })
+  // const { user } = await useAuth()
+  // if (user) {
+  //   const workflow = await db.workflows.findMany({
+  //     where: {
+  //       userId: user.id,
+  //     },
+  //   })
 
-    if (workflow) return workflow
-  }
+  //   if (workflow) return workflow
+  // }
 }
 
 export const onCreateWorkflow = async (name: string, description: string) => {
-  const { user } = await useAuth()
-  if (user) {
-    //create new workflow
-    const workflow = await db.workflows.create({
-      data: {
-        userId: user.id,
-        name,
-        description,
-      },
-    })
+  // const { user } = await useAuth()
+  // if (user) {
+  //   //create new workflow
+  //   const workflow = await db.workflows.create({
+  //     data: {
+  //       userId: user.id,
+  //       name,
+  //       description,
+  //     },
+  //   })
 
-    if (workflow) return { message: 'workflow created' }
-    return { message: 'Oops! try again' }
-  }
+  //   if (workflow) return { message: 'workflow created' }
+  //   return { message: 'Oops! try again' }
+  // }
 }
 
 export const onGetNodesEdges = async (flowId: string) => {

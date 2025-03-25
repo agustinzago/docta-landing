@@ -4,41 +4,41 @@ import { db } from '@/lib/db'
 import BillingDashboard from './_components/billing-dashboard'
 import { CreditCard, Receipt, History } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useAuth } from '@/hooks/useAuth'
+import { useSession } from 'next-auth/react'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }
 }
 
 const Billing = async (props: Props) => {
-  const { session_id } = props.searchParams ?? {
-    session_id: '',
-  }
-  if (session_id) {
-    const stripe = new Stripe(process.env.STRIPE_SECRET!, {
-      typescript: true,
-      apiVersion: '2025-02-24.acacia',
-    })
+  // const { session_id } = props.searchParams ?? {
+  //   session_id: '',
+  // }
+  // if (session_id) {
+  //   const stripe = new Stripe(process.env.STRIPE_SECRET!, {
+  //     typescript: true,
+  //     apiVersion: '2025-02-24.acacia',
+  //   })
 
-    const session = await stripe.checkout.sessions.listLineItems(session_id)
-    const {user} = useAuth()
-    if (user) {
-      await db.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          tier: session.data[0].description,
-          credits:
-            session.data[0].description == 'Unlimited'
-              ? 'Unlimited'
-              : session.data[0].description == 'Pro'
-              ? '100'
-              : '10',
-        },
-      })
-    }
-  }
+  //   const stripeSession = await stripe.checkout.sessions.listLineItems(session_id)
+  //   const { data: session } = useSession()
+  //   if (session.user) {
+  //     await db.user.update({
+  //       where: {
+  //         id: user.id,
+  //       },
+  //       data: {
+  //         tier: stripeSession.data[0].description,
+  //         credits:
+  //           stripeSession.data[0].description == 'Unlimited'
+  //             ? 'Unlimited'
+  //             : stripeSession.data[0].description == 'Pro'
+  //             ? '100'
+  //             : '10',
+  //       },
+  //     })
+  //   }
+  // }
 
   return (
     <div className="flex flex-col">

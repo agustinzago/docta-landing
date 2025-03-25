@@ -1,27 +1,38 @@
+'use server'
 import { db } from '@/lib/db'
 import React from 'react'
 import ProfilePicture from './_components/ProfilePictre'
 import ProfileForm from '@/components/forms/profile-form'
-import { useAuth } from '@/hooks/useAuth'
+import { getServerSession } from "next-auth/next"
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { redirect } from 'next/navigation'
 
 const Settings = async () => {
-  const authUser = await useAuth();
-  if (!authUser || !authUser.user) {
-    return null
+  // Obtener la sesión del usuario con NextAuth
+  const session = await getServerSession(authOptions)
+  
+  // Redireccionar si no hay sesión
+  if (!session || !session.user) {
+    redirect('/sign-in')
   }
 
   const user = await db.user.findUnique({
     where: {
-      id: authUser.user?.id,
+      id: session.user.id,
     },
   })
+
+  // Si no se encuentra el usuario en la base de datos
+  if (!user) {
+    redirect('/sign-in')
+  }
 
   const removeProfileImage = async () => {
     'use server'
     try {
       await db.user.update({
         where: {
-          id: authUser.user?.id,
+          id: session.user.id,
         },
         data: {
           profileImage: '',
@@ -39,7 +50,7 @@ const Settings = async () => {
 
     const updateUser = await db.user.update({
       where: {
-        id: authUser.user?.id,
+        id: session.user.id,
       },
       data: {
         name,
@@ -48,13 +59,12 @@ const Settings = async () => {
     return updateUser
   }
 
-
   const uploadProfileImage = async (image: string) => {
     'use server'
     try {
       await db.user.update({
         where: {
-          id: authUser.user?.id,
+          id: session.user.id,
         },
         data: {
           profileImage: image,

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Image from 'next/image';
 import { Gloria_Hallelujah } from 'next/font/google';
@@ -5,12 +6,10 @@ import clsx from 'clsx';
 import { heroDetails } from '@/data/hero';
 import CTAButton from './CTAButton';
 import { siteDetails } from '@/data/siteDetails';
-import { useAuth } from '@/hooks/useAuth';
 
 const gloria = Gloria_Hallelujah({ subsets: ['latin'], weight: '400' });
 
 const Hero: React.FC = async () => {
-  const { user }  = await useAuth();
   return (
     <section className="relative flex flex-col items-center justify-center text-center pt-28 md:pt-40 pb-40 md:pb-60 px-5">
       {/* Background Grid */}
@@ -62,7 +61,7 @@ const Hero: React.FC = async () => {
 
         {/* Call To Actions */}
         <div className="mt-6 flex flex-col sm:flex-row items-center sm:gap-4 w-fit mx-auto mb-6">
-          <CTAButton text={ user ? 'Dashboard' : 'Get started'} url="/dashboard" variant="primary" />
+          <CTAButton text={ 'Get started'} url="/dashboard" variant="primary" />
           <CTAButton text="How AI can help" url="/about" variant="secondary" />
         </div>
       </div>

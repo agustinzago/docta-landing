@@ -8,8 +8,6 @@ const { composePlugins, withNx } = require('@nx/next');
  **/
 const nextConfig = {
   nx: {
-    // Set this to true if you would like to use SVGR
-    // See: https://github.com/gregberge/svgr
     svgr: false,
   },
   images: {
@@ -18,10 +16,6 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
         pathname: '/u/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img.clerk.com',
       },
       {
         protocol: 'https',

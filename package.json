@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "nx run-many --target=serve --projects=web,api --parallel",
     "dev:api": "nx run api:serve",
-    "dev:web": "nx run web:serve",
+    "dev:web": "nx run web:dev",
     "db:studio": "pnpx prisma studio --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
     "db:generate": "pnpx prisma generate --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
     "db:migrate": "pnpx prisma migrate dev --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
