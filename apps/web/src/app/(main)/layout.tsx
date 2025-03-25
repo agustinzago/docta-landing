@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import InfoBar from "@/components/infobar/InfoBar"
 import MenuOptions from "@/components/MenuOptions/MenuOptions"
 import React from "react"
+import AuthGuard from '@/components/AuthGuard';
 
 export default function MainLayout({
   children,
@@ -32,11 +33,13 @@ export default function MainLayout({
 
   return (
     <div className="flex overflow-hidden h-screen">
+      <AuthGuard>
       <MenuOptions />
       <div className="w-full">
         <InfoBar />
         {children}
       </div>
+      </AuthGuard>
     </div>
   );
 }

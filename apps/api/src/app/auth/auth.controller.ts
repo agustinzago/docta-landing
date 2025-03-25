@@ -85,58 +85,73 @@ export class AuthController {
   @UseGuards(GoogleOauthGuard)
   async googleAuthCallback(@Req() req: any, @Res() res: express.Response) {
     try {
+      // Obtener tokens del servicio de autenticación
       const result = await this.authService.signIn(req.user);
       if (!result) throw new Error('Authentication failed');
 
       const { accessToken, refreshToken, user } = result;
 
-      // Configuración más explícita de cookies para OAuth
-      // Cookie de access_token
+      // Registrar para depuración
+      console.log(
+        `Google OAuth callback: Generando tokens para el usuario ${user.email} (${user.id})`
+      );
+
+      // Configurar maxAge para cookies
+      const accessTokenMaxAge = 15 * 60 * 1000; // 15 minutos
+      const refreshTokenMaxAge = 7 * 24 * 60 * 60 * 1000; // 7 días
+
+      // Configurar cookies - CRUCIAL: configuración más específica y debuggable
+      console.log('Configurando cookie access_token...');
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'lax', // Importante: 'lax' permitirá que la cookie se envíe en redirecciones
         path: '/',
-        maxAge: 15 * 60 * 1000, // 15 minutos
+        maxAge: accessTokenMaxAge,
       });
 
-      // Cookie de refresh_token
+      console.log('Configurando cookie refresh_token...');
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'lax', // Importante para redirecciones cross-site
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+        maxAge: refreshTokenMaxAge,
       });
 
-      // Cookie de user_id
+      console.log('Configurando cookie user_id...');
       res.cookie('user_id', String(user.id), {
-        httpOnly: false,
+        httpOnly: false, // Para que sea accesible desde JavaScript
         secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        sameSite: 'lax',
         path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+        maxAge: refreshTokenMaxAge,
       });
 
-      // Añadir log para confirmar que se establecen las cookies
-      console.log('OAuth: Cookies establecidas para el usuario:', user.id);
+      // Verificar que las cookies se están estableciendo
+      console.log(
+        'Cookies establecidas. Headers:',
+        JSON.stringify(res.getHeaders())
+      );
 
+      // Construir URL para redirección al dashboard
       const frontendUrl =
-        this.configService.get('FRONTEND_URL') || 'https://localhost:3000';
-      const redirectUrl = new URL(frontendUrl);
-      redirectUrl.pathname = '/auth/callback'; // Redirigir a la página de callback
-      redirectUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&user_id=${user.id}`;
+        this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+      console.log('URL frontend:', frontendUrl);
 
-      return res.redirect(redirectUrl.toString());
+      // IMPORTANTE: Agregar hash con tokens como fallback
+      // Este es un mecanismo alternativo en caso de que las cookies no funcionen
+      const dashboardUrl = new URL(`${frontendUrl}/dashboard`);
+      dashboardUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&user_id=${user.id}`;
+
+      console.log('Redirigiendo a:', dashboardUrl.toString());
+      return res.redirect(dashboardUrl.toString());
     } catch (error) {
       console.error('Error en la autenticación con Google:', error);
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
 
       const frontendUrl =
-        this.configService.get('FRONTEND_URL') || 'https://localhost:3000';
-      const errorRedirectUrl = new URL(frontendUrl);
-      errorRedirectUrl.pathname = '/sign-in';
+        this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+      const errorRedirectUrl = new URL(`${frontendUrl}/sign-in`);
       errorRedirectUrl.searchParams.append('error', 'google_auth_failed');
 
       return res.redirect(errorRedirectUrl.toString());

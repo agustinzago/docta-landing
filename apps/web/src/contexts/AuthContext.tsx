@@ -27,52 +27,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async () => {
     try {
-      console.log('Fetching user profile');
+      console.log('Iniciando fetchUserProfile');
       
-      // Verificar si hay tokens en el hash de la URL (específico para OAuth)
-      if (typeof window !== 'undefined' && window.location.hash) {
-        const hash = window.location.hash.substring(1);
-        const params = new URLSearchParams(hash);
+      // Verificar si estamos en la página del dashboard después de autenticación OAuth
+      if (typeof window !== 'undefined' && 
+          window.location.pathname === '/dashboard' && 
+          window.location.search.includes('auth_success=true')) {
         
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-        const userId = params.get('user_id');
+        console.log('Detectada redirección OAuth exitosa');
         
-        if (accessToken && refreshToken && userId) {
-          console.log('Tokens encontrados en URL hash, estableciendo cookies...');
+        // Intentar obtener el perfil inmediatamente
+        try {
+          const userData = await authService.getProfile();
+          console.log('Perfil obtenido correctamente después de OAuth:', userData);
+          setUser(userData);
           
-          // Establecer cookies manualmente desde el cliente
-          document.cookie = `access_token=${accessToken}; path=/; max-age=${15 * 60}`;
-          document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${7 * 24 * 60 * 60}`;
-          document.cookie = `user_id=${userId}; path=/; max-age=${7 * 24 * 60 * 60}`;
+          // Limpiar parámetros de URL manteniendo la ruta actual
+          window.history.replaceState({}, document.title, window.location.pathname);
           
-          // Limpiar el hash de la URL para seguridad
-          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          return userData;
+        } catch (profileError) {
+          console.error('Error obteniendo perfil después de OAuth:', profileError);
         }
       }
       
-      // Continuar con la obtención del perfil
+      // Flujo normal para otras páginas o si el método anterior falló
       const userData = await authService.getProfile();
-      console.log('User profile fetched successfully', userData);
+      console.log('Perfil obtenido correctamente:', userData);
       setUser(userData);
       return userData;
     } catch (error) {
-      console.error('Failed to fetch user profile:', error);
+      console.error('Error en fetchUserProfile:', error);
       
-      // Intentar refrescar el token si hay algún usuario en la cookie
+      // Intentar refrescar el token si hay una cookie user_id
       if (document.cookie.includes('user_id')) {
-        console.log('Found user_id cookie, attempting to refresh token');
+        console.log('Detectada cookie user_id, intentando refrescar token');
         const refreshed = await authService.refreshToken();
+        
         if (refreshed) {
-          console.log('Token refreshed, trying to fetch profile again');
+          console.log('Token refrescado correctamente, obteniendo perfil');
           try {
             const userData = await authService.getProfile();
-            console.log('User profile fetched after token refresh', userData);
+            console.log('Perfil obtenido después de refrescar token:', userData);
             setUser(userData);
             return userData;
           } catch (retryError) {
-            console.error('Failed to fetch profile after token refresh:', retryError);
+            console.error('Error obteniendo perfil después de refrescar token:', retryError);
           }
+        } else {
+          console.error('Falló el refresco del token');
         }
       }
       

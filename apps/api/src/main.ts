@@ -6,7 +6,7 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app/app.module';
-import cookieParser from 'cookie-parser';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,17 +14,15 @@ async function bootstrap() {
   app.setGlobalPrefix(globalPrefix);
 
   // Middleware para cookies - importante para el manejo de tokens
-  app.use(cookieParser());
+  app.use(cookieParser.default());
 
   // Registra cuando se inicializa el servidor
   console.log('Server bootstrapping with cookie-parser middleware');
-
   // Configuración CORS mejorada
   app.enableCors({
     origin: [
       'http://localhost:3000',
       'http://127.0.0.1:3000',
-      'https://localhost:3000',
       'http://localhost:5005',
       // Añadir aquí tus dominios de producción cuando sea necesario
       process.env.FRONTEND_URL || '',

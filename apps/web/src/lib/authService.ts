@@ -133,13 +133,26 @@ class AuthService {
 
   async googleLogin(): Promise<void> {
     console.log('Iniciando autenticación con Google');
-    // Guardar la URL actual para redirección post-autenticación si es necesario
+
+    // Guardar la ruta actual para redirección después de la autenticación
     if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_redirect', window.location.pathname);
+      const currentPath = window.location.pathname;
+      localStorage.setItem(
+        'auth_redirect',
+        currentPath !== '/sign-in' ? currentPath : '/dashboard'
+      );
     }
 
-    // Redirigir al usuario a la URL de inicio de sesión de Google en el backend
-    window.location.href = `${API_URL}/auth/google`;
+    // Obtener la URL de API
+    const API_URL =
+      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+
+    // Construir la URL para la autenticación con Google
+    // Sin añadir parámetros state que no están configurados en el backend
+    const googleAuthUrl = `${API_URL}/auth/google`;
+
+    console.log('Redirigiendo a:', googleAuthUrl);
+    window.location.href = googleAuthUrl;
   }
 
   async refreshToken(): Promise<boolean> {

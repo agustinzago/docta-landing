@@ -1,11 +1,10 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import * as config from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import { User } from '../../users/entities/user.entity';
-import configuration from '../../config/configuration';
 
 export type JwtPayload = {
   sub: string;
@@ -16,32 +15,40 @@ export type JwtPayload = {
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private prisma: PrismaService,
-    @Inject(configuration.KEY)
-    private readonly config: config.ConfigType<typeof configuration>
+    private configService: ConfigService // Cambiado a ConfigService estándar
   ) {
     const extractJwtFromCookie = (req: Request) => {
-      // Primero buscamos el token en la cookie access_token
+      let token = null;
+
+      // Primero intentar extraer de las cookies
       if (req && req.cookies) {
-        const token = req.cookies['access_token'];
+        token = req.cookies['access_token'];
         if (token) {
+          console.log('Token extraído de cookie access_token');
           return token;
         }
       }
 
-      // Si no hay token en la cookie, buscamos en el encabezado de autorización
-      return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+      // Si no hay cookie, intentar extraer del header
+      const authHeader = req.headers['authorization'];
+      if (authHeader && authHeader.split(' ')[0] === 'Bearer') {
+        token = authHeader.split(' ')[1];
+        console.log('Token extraído de Authorization header');
+        return token;
+      }
+
+      return null;
     };
 
-    const jwtSecret = config.jwt.secret;
-    if (!jwtSecret) {
-      throw new Error('JWT secret is not defined');
+    const secretKey = configService.get<string>('JWT_SECRET');
+    if (!secretKey) {
+      throw new Error('JWT_SECRET not configured properly');
     }
 
     super({
-      ignoreExpiration: false,
-      secretOrKey: jwtSecret,
       jwtFromRequest: extractJwtFromCookie,
-      passReqToCallback: false, // No necesitamos pasar la req al método validate
+      ignoreExpiration: false,
+      secretOrKey: secretKey, // Usar ConfigService directamente
     });
   }
 

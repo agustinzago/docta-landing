@@ -133,17 +133,31 @@ export class AuthService {
     return this.jwtService.signAsync(payload, { expiresIn: '15m' });
   }
 
+  // Actualizar el método validateRefreshToken
   async validateRefreshToken(token: string): Promise<any> {
     try {
-      // Asegúrate de que el token no esté vacío
+      console.log('Validando refresh token');
+
+      // Verificar que el token no esté vacío
       if (!token || token === 'undefined' || token === 'null') {
+        console.error('Token vacío o inválido');
         return null;
       }
 
-      // Verificar el token con el secreto correcto
-      return await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+      // Obtener el secreto usando el ConfigService
+      const secret = this.configService.get<string>('JWT_SECRET');
+      if (!secret) {
+        console.error('JWT_SECRET no está configurado');
+        throw new Error('JWT_SECRET is not defined');
+      }
+
+      // Verificar el token con el secreto obtenido del ConfigService
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: secret,
       });
+
+      console.log('Token validado correctamente para el usuario:', payload.sub);
+      return payload;
     } catch (error) {
       console.error('Error validando refresh token:', error);
       return null;
