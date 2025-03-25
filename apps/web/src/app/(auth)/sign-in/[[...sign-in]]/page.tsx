@@ -2,31 +2,37 @@
 
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { LockIcon } from 'lucide-react';
 import { BiEnvelopeOpen } from 'react-icons/bi';
 import { FormContainer } from '@/components/Auth/FormContainer';
 import { FormHeading } from '@/components/Auth/FormHeading';
 import { ErrorMessage } from '@/components/Auth/ErrorMessage';
 import { SocialButton } from '@/components/Auth/SocialButton';
-import { Divider } from '@/components/Auth/divider';
 import { InputField } from '@/components/Auth/InputField';
 import { SubmitButton } from '@/components/Auth/SubmitButton';
 import { AuthLink } from '@/components/Auth/Link';
-
-// Componentes reutilizables
-
+import { Divider } from '@/components/Auth/Divider';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignIn() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-  const error = searchParams.get('error');
+  
+  const { login, googleLogin, isAuthenticated } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [formError, setFormError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+
+  // Redirecciona si ya está autenticado
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      router.push(callbackUrl);
+    }
+  }, [isAuthenticated, callbackUrl, router]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,20 +40,10 @@ export default function SignIn() {
     setFormError('');
 
     try {
-      const result = await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
-
-      if (result?.error) {
-        setFormError(result.error);
-      } else if (result?.ok) {
-        router.push(callbackUrl);
-        router.refresh();
-      }
+      await login(email, password);
+      router.push(callbackUrl);
     } catch (err) {
-      setFormError('Error al conectar con el servidor de autenticación');
+      setFormError(err instanceof Error ? err.message : 'Error al iniciar sesión');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -55,13 +51,8 @@ export default function SignIn() {
   };
 
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl });
+    googleLogin();
   };
-
-  const errorMessage = formError || (error ? 
-    error === 'CredentialsSignin' ? 'Credenciales inválidas' : 
-    'Error en la autenticación'
-  : '');
 
   return (
     <FormContainer>
@@ -70,7 +61,7 @@ export default function SignIn() {
         subtitle="Ingresa a tu cuenta para continuar" 
       />
       
-      <ErrorMessage message={errorMessage} />
+      <ErrorMessage message={formError} />
       
       <div className="px-6 pb-6">
         <SocialButton onClick={handleGoogleSignIn}>
@@ -108,6 +99,8 @@ export default function SignIn() {
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-3 w-3 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
               />
               <label htmlFor="remember-me" className="ml-1 block text-xs text-gray-700">

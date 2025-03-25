@@ -16,31 +16,25 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from './ui/dropdown-menu';
-import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext'; // Importar nuestro hook personalizado
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
     const router = useRouter();
     
-    // Usando useSession de NextAuth
-    const { data: session, status } = useSession();
-    const loading = status === 'loading';
-    const user = session?.user;
+    // Usando nuestro hook de autenticación personalizado
+    const { user, isAuthenticated, logout } = useAuth();
     
-    // Determinar si el usuario está autenticado
-    const isSignedIn = !!user;
-
     const half = Math.ceil(menuItems.length / 2);
     const firstHalf = menuItems.slice(0, half);
     const secondHalf = menuItems.slice(half);
 
-    // Función para cerrar sesión con NextAuth
+    // Función para cerrar sesión con nuestro servicio
     const handleLogout = async () => {
-        await signOut({ redirect: false });
+        await logout();
         router.push('/');
-        router.refresh();
     };
 
     const UserButton = () => (
@@ -48,7 +42,7 @@ const Header: React.FC = () => {
             <DropdownMenuTrigger className="focus:outline-none">
                 <Avatar className="h-9 w-9 cursor-pointer">
                     <AvatarImage 
-                        src={user?.image || ''} 
+                        src={user?.profileImage || ''} 
                         alt={user?.name || 'User'} 
                     />
                     <AvatarFallback>
@@ -99,7 +93,7 @@ const Header: React.FC = () => {
                     <div className="md:hidden flex items-center w-full">
                         {/* Left space - UserButton para mobile */}
                         <div className="w-10 flex items-center justify-center">
-                            {isSignedIn && <UserButton />}
+                            {isAuthenticated && <UserButton />}
                         </div>
                         
                         {/* Logo centered */}
@@ -154,7 +148,7 @@ const Header: React.FC = () => {
                         ))}
                         {/* Añadir UserButton o botones de Iniciar/Registrar */}
                         <li className="ml-4">
-                            {isSignedIn ? (
+                            {isAuthenticated ? (
                                 <UserButton />
                             ) : (
                                 <div className="flex space-x-2">
@@ -191,7 +185,7 @@ const Header: React.FC = () => {
                             </li>
                         ))}
                         {/* Añadir botones de inicio de sesión/registro si no está autenticado */}
-                        {!isSignedIn && (
+                        {!isAuthenticated && (
                             <>
                                 <li className="pt-2">
                                     <Link href="/sign-in" className="block w-full py-2 text-center rounded-md border border-primary hover:bg-primary hover:text-white transition-colors" onClick={toggleMenu}>

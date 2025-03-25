@@ -1,80 +1,113 @@
-'use server'
-import { db } from '@/lib/db'
-import React from 'react'
-import ProfilePicture from './_components/ProfilePictre'
-import ProfileForm from '@/components/forms/profile-form'
-import { getServerSession } from "next-auth/next"
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
-import { redirect } from 'next/navigation'
+'use client';
 
-const Settings = async () => {
-  // Obtener la sesión del usuario con NextAuth
-  const session = await getServerSession(authOptions)
-  
-  // Redireccionar si no hay sesión
-  if (!session || !session.user) {
-    redirect('/sign-in')
-  }
+import React, { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
+import ProfilePicture from './_components/ProfilePictre';
+import ProfileForm from '@/components/forms/profile-form';
+import { db } from '@/lib/db';
 
-  const user = await db.user.findUnique({
-    where: {
-      id: session.user.id,
-    },
-  })
+const Settings = () => {
+  const { user, isAuthenticated, isLoading, refreshUser } = useAuth();
+  const router = useRouter();
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  // Si no se encuentra el usuario en la base de datos
-  if (!user) {
-    redirect('/sign-in')
-  }
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/sign-in');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const removeProfileImage = async () => {
-    'use server'
+    if (!user) return false;
+    
     try {
-      await db.user.update({
-        where: {
-          id: session.user.id,
-        },
-        data: {
-          profileImage: '',
-        },
-      })
-      return true
+      setIsUpdating(true);
+      
+      const response = await fetch(`/api/users/${user.id}/profile-image`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar imagen de perfil');
+      }
+      
+      await refreshUser();
+      return true;
     } catch (error) {
-      console.error("Error removing profile image:", error)
-      return false
+      console.error("Error removing profile image:", error);
+      return false;
+    } finally {
+      setIsUpdating(false);
     }
-  }
+  };
 
   const updateUserInfo = async (name: string) => {
-    'use server'
-
-    const updateUser = await db.user.update({
-      where: {
-        id: session.user.id,
-      },
-      data: {
-        name,
-      },
-    })
-    return updateUser
-  }
+    if (!user) return null;
+    
+    try {
+      setIsUpdating(true);
+      
+      const response = await fetch(`/api/users/${user.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al actualizar información de usuario');
+      }
+      
+      const updatedUser = await response.json();
+      await refreshUser();
+      return updatedUser;
+    } catch (error) {
+      console.error("Error updating user info:", error);
+      return null;
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const uploadProfileImage = async (image: string) => {
-    'use server'
+    if (!user) return false;
+    
     try {
-      await db.user.update({
-        where: {
-          id: session.user.id,
+      setIsUpdating(true);
+      
+      const response = await fetch(`/api/users/${user.id}/profile-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        data: {
-          profileImage: image,
-        },
-      })
-      return true
+        credentials: 'include',
+        body: JSON.stringify({ profileImage: image }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al subir imagen de perfil');
+      }
+      
+      await refreshUser();
+      return true;
     } catch (error) {
-      console.error("Error uploading profile image:", error)
-      return false
+      console.error("Error uploading profile image:", error);
+      return false;
+    } finally {
+      setIsUpdating(false);
     }
+  };
+
+  if (isLoading || !user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      </div>
+    );
   }
 
   return (
@@ -91,7 +124,7 @@ const Settings = async () => {
         </div>
         <ProfilePicture
           onDelete={removeProfileImage}
-          userImage={user?.profileImage || ''}
+          userImage={user.profileImage || ''}
           onUpload={uploadProfileImage}
         />
         <ProfileForm
@@ -100,7 +133,7 @@ const Settings = async () => {
         />
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Settings
+export default Settings;

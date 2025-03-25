@@ -4,7 +4,6 @@ import { db } from '@/lib/db'
 import BillingDashboard from './_components/billing-dashboard'
 import { CreditCard, Receipt, History } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSession } from 'next-auth/react'
 
 type Props = {
   searchParams?: { [key: string]: string | undefined }

@@ -1,32 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
 import { LockIcon, UserIcon } from 'lucide-react';
 import { BiEnvelopeOpen } from 'react-icons/bi';
 import { FormContainer } from '@/components/Auth/FormContainer';
 import { FormHeading } from '@/components/Auth/FormHeading';
 import { ErrorMessage } from '@/components/Auth/ErrorMessage';
 import { SocialButton } from '@/components/Auth/SocialButton';
-import { Divider } from '@/components/Auth/divider';
 import { InputField } from '@/components/Auth/InputField';
 import { SubmitButton } from '@/components/Auth/SubmitButton';
 import { AuthLink } from '@/components/Auth/Link';
-
-// Componentes reutilizables
-
-
-// Puedes reemplazar esto con tu API URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
+import { Divider } from '@/components/Auth/Divider';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function SignUp() {
   const router = useRouter();
+  const { register, googleLogin, isAuthenticated } = useAuth();
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Redirecciona si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, router]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,39 +37,18 @@ export default function SignUp() {
     setError('');
 
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al registrarse');
-      }
-
-      // Iniciar sesión automáticamente después del registro
-      await signIn('credentials', {
-        redirect: false,
-        email,
-        password,
-      });
-
-      // Redirigir al dashboard
+      await register(name, email, password);
       router.push('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Error al registrarse');
+      console.error('Error de registro:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignUp = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    googleLogin();
   };
 
   return (

@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nx run-many --target=serve --projects=web,api --parallel",
+    "dev": "concurrently \"nx run api:serve\" \"nx run web:dev\"",
     "dev:api": "nx run api:serve",
     "dev:web": "nx run web:dev",
     "db:studio": "pnpx prisma studio --schema /Users/agustinzago/Desktop/docta/packages/prisma/schema.prisma",
@@ -47,6 +47,7 @@
     "@types/react-dom": "18.3.0",
     "autoprefixer": "10.4.13",
     "babel-jest": "^29.7.0",
+    "concurrently": "^9.1.2",
     "eslint": "^9.8.0",
     "eslint-config-next": "14.2.16",
     "eslint-config-prettier": "^9.0.0",

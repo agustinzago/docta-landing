@@ -8,6 +8,7 @@ import ModalProvider from "@/providers/modal-provider";
 import { Toaster } from "sonner";
 import { BillingProvider } from "@/providers/billing-provider";
 import { Providers } from "@/providers/providers";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const manrope = Manrope({ subsets: ['latin'] });
 const sourceSans = Source_Sans_3({ subsets: ['latin'] });
@@ -47,14 +48,14 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${manrope.className} ${sourceSans.className} antialiased`}>
           {siteDetails.googleAnalyticsId && <GoogleAnalytics gaId={siteDetails.googleAnalyticsId} />}
-          <Providers>
+          <AuthProvider>
             <BillingProvider>
-              <ModalProvider>
-                {children}
-              </ModalProvider>
-            </BillingProvider>
-            <Toaster />
-          </Providers>
+                <ModalProvider>
+                  {children}
+                </ModalProvider>
+              </BillingProvider>
+              <Toaster />
+          </AuthProvider>
         </body>
       </html>
   );
