@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { Request } from 'express';
 import { PrismaService } from '../../prisma/prisma.service';
-import type { ConfigType } from '@nestjs/config';
+import * as config from '@nestjs/config';
 import { User } from '../../users/entities/user.entity';
 import configuration from '../../config/configuration';
 
@@ -17,15 +17,19 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
     private prisma: PrismaService,
     @Inject(configuration.KEY)
-    private readonly config: ConfigType<typeof configuration>
+    private readonly config: config.ConfigType<typeof configuration>
   ) {
     const extractJwtFromCookie = (req: Request) => {
-      // Extraer token de cookie o header de autorización
-      let token = null;
+      // Primero buscamos el token en la cookie access_token
       if (req && req.cookies) {
-        token = req.cookies['token'];
+        const token = req.cookies['access_token'];
+        if (token) {
+          return token;
+        }
       }
-      return token || ExtractJwt.fromAuthHeaderAsBearerToken()(req);
+
+      // Si no hay token en la cookie, buscamos en el encabezado de autorización
+      return ExtractJwt.fromAuthHeaderAsBearerToken()(req);
     };
 
     const jwtSecret = config.jwt.secret;
@@ -37,26 +41,39 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
       jwtFromRequest: extractJwtFromCookie,
+      passReqToCallback: false, // No necesitamos pasar la req al método validate
     });
   }
 
   async validate(payload: JwtPayload): Promise<User> {
-    // Validar el token y recuperar el usuario asociado
+    // Validar que el payload contenga la información necesaria
+    if (!payload || !payload.sub) {
+      throw new UnauthorizedException('Invalid token structure');
+    }
+
+    // Buscar usuario en la base de datos
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      include: {
-        connections: true,
-        LocalGoogleCredential: true,
-        DiscordWebhook: true,
-        Notion: true,
-        Slack: true,
-        workflows: true,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        profileImage: true,
+        tier: true,
+        credits: true,
+        // Solo incluimos las relaciones si son necesarias para la autenticación
+        connections: false, // Cambia a true si necesitas estas relaciones
+        LocalGoogleCredential: false,
+        DiscordWebhook: false,
+        Notion: false,
+        Slack: false,
+        workflows: false,
       },
     });
 
     if (!user) {
       throw new UnauthorizedException(
-        'El usuario no existe o el token no es válido'
+        'User does not exist or token is invalid'
       );
     }
 

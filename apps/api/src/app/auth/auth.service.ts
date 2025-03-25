@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/user.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -14,15 +15,28 @@ export class AuthService {
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
-    private prisma: PrismaService
+    private prisma: PrismaService,
+    private configService: ConfigService
   ) {}
 
-  async signIn(user: User) {
-    const userExists = await this.userService.findByEmail(user.email);
-    if (!userExists) {
-      return await this.registerUser(user);
+  // Método para iniciar sesión y generar tokens JWT
+  async signIn(user: any) {
+    try {
+      // Verificar que el usuario exista
+      if (!user || !user.id) {
+        console.error('signIn: Usuario inválido', user);
+        return null;
+      }
+
+      // Generar tokens
+      const tokens = await this.generateToken(user);
+      console.log(`signIn: Tokens generados para usuario ${user.id}`);
+
+      return tokens;
+    } catch (error) {
+      console.error('Error en signIn:', error);
+      throw error;
     }
-    return this.generateToken(userExists);
   }
 
   async validateCredentials(
@@ -69,28 +83,49 @@ export class AuthService {
     }
   }
 
-  async generateToken(user: User) {
-    const payload = { sub: user.id, email: user.email };
+  // Método para generar tokens JWT
+  async generateToken(user: any) {
+    try {
+      const payload = { sub: user.id, email: user.email };
 
-    const accessToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '15m',
-    });
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      expiresIn: '7d',
-    });
+      // Obtener secreto del ConfigService
+      const secret = this.configService.get<string>('JWT_SECRET');
+      if (!secret) {
+        console.error('JWT_SECRET no está configurado');
+        throw new Error('JWT_SECRET is not defined');
+      }
 
-    return {
-      accessToken,
-      refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        profileImage: user.profileImage,
-        tier: user.tier,
-        credits: user.credits,
-      },
-    };
+      // Generar tokens con el secreto configurado
+      const accessToken = await this.jwtService.signAsync(payload, {
+        secret: secret,
+        expiresIn: '15m',
+      });
+
+      const refreshToken = await this.jwtService.signAsync(payload, {
+        secret: secret,
+        expiresIn: '7d',
+      });
+
+      console.log(
+        `generateToken: Tokens generados correctamente para ${user.id}`
+      );
+
+      return {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          profileImage: user.profileImage,
+          tier: user.tier,
+          credits: user.credits,
+        },
+      };
+    } catch (error) {
+      console.error('Error generando tokens:', error);
+      throw error;
+    }
   }
 
   async generateAccessToken(user: User): Promise<string> {
@@ -100,8 +135,29 @@ export class AuthService {
 
   async validateRefreshToken(token: string): Promise<any> {
     try {
-      return await this.jwtService.verifyAsync(token);
-    } catch {
+      // Asegúrate de que el token no esté vacío
+      if (!token || token === 'undefined' || token === 'null') {
+        return null;
+      }
+
+      // Verificar el token con el secreto correcto
+      return await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch (error) {
+      console.error('Error validando refresh token:', error);
+      return null;
+    }
+  }
+
+  async decodeToken(token: string): Promise<any> {
+    try {
+      if (!token || token === 'undefined' || token === 'null') {
+        return null;
+      }
+      return this.jwtService.decode(token);
+    } catch (error) {
+      console.error('Error decodificando token:', error);
       return null;
     }
   }

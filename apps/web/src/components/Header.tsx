@@ -17,21 +17,20 @@ import {
   DropdownMenuTrigger 
 } from './ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext'; // Importar nuestro hook personalizado
+import { useAuth } from '@/contexts/AuthContext';
+import { LogIn, UserPlus } from 'lucide-react'; // Importamos iconos de Lucide
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const toggleMenu = () => setIsOpen(!isOpen);
     const router = useRouter();
     
-    // Usando nuestro hook de autenticación personalizado
     const { user, isAuthenticated, logout } = useAuth();
     
     const half = Math.ceil(menuItems.length / 2);
     const firstHalf = menuItems.slice(0, half);
     const secondHalf = menuItems.slice(half);
 
-    // Función para cerrar sesión con nuestro servicio
     const handleLogout = async () => {
         await logout();
         router.push('/');
@@ -40,34 +39,54 @@ const Header: React.FC = () => {
     const UserButton = () => (
         <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
-                <Avatar className="h-9 w-9 cursor-pointer">
+                <Avatar className="h-9 w-9 cursor-pointer border-2 border-white/20 hover:border-white/50 transition-colors">
                     <AvatarImage 
                         src={user?.profileImage || ''} 
                         alt={user?.name || 'User'} 
                     />
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
                         {user?.name?.charAt(0) || user?.email?.charAt(0) || 'U'}
                     </AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href="/dashboard">Dashboard</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/profile">Perfil</Link>
+                    <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                    <Link href="/settings">Configuración</Link>
+                    <Link href="/settings">Settings</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500">
-                    Cerrar sesión
+                    Sign Out
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
+    );
+
+    // Componente para los botones de autenticación en desktop
+    const AuthButtons = ({ className = "" }) => (
+        <div className={`flex items-center gap-3 ${className}`}>
+            <Link 
+                href="/sign-in" 
+                className="group flex items-center gap-1.5 text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
+            >
+                <LogIn className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                <span>Sign In</span>
+            </Link>
+            <Link 
+                href="/sign-up" 
+                className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-indigo-600 to-indigo-500 px-3.5 py-1.5 text-sm font-medium text-white shadow-sm hover:from-indigo-500 hover:to-indigo-400 transition-colors"
+            >
+                <UserPlus className="w-4 h-4" />
+                <span>Sign Up</span>
+            </Link>
+        </div>
     );
 
     return (
@@ -151,14 +170,7 @@ const Header: React.FC = () => {
                             {isAuthenticated ? (
                                 <UserButton />
                             ) : (
-                                <div className="flex space-x-2">
-                                    <Link href="/sign-in" className="px-3 py-1 rounded-md border border-primary hover:bg-primary hover:text-white transition-colors">
-                                        Iniciar sesión
-                                    </Link>
-                                    <Link href="/sign-up" className="px-3 py-1 rounded-md bg-primary text-white hover:bg-primary-dark transition-colors">
-                                        Registrarse
-                                    </Link>
-                                </div>
+                                <AuthButtons />
                             )}
                         </li>
                     </ul>
@@ -186,18 +198,24 @@ const Header: React.FC = () => {
                         ))}
                         {/* Añadir botones de inicio de sesión/registro si no está autenticado */}
                         {!isAuthenticated && (
-                            <>
-                                <li className="pt-2">
-                                    <Link href="/sign-in" className="block w-full py-2 text-center rounded-md border border-primary hover:bg-primary hover:text-white transition-colors" onClick={toggleMenu}>
-                                        Iniciar sesión
-                                    </Link>
-                                </li>
-                                <li>
-                                    <Link href="/sign-up" className="block w-full py-2 text-center rounded-md bg-primary text-white hover:bg-primary-dark transition-colors" onClick={toggleMenu}>
-                                        Registrarse
-                                    </Link>
-                                </li>
-                            </>
+                            <li className="pt-4 flex flex-col space-y-3">
+                                <Link 
+                                    href="/sign-in" 
+                                    className="flex items-center justify-center gap-1.5 w-full py-2 text-center rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                                    onClick={toggleMenu}
+                                >
+                                    <LogIn className="w-4 h-4" />
+                                    <span>Sign In</span>
+                                </Link>
+                                <Link 
+                                    href="/sign-up" 
+                                    className="flex items-center justify-center gap-1.5 w-full py-2 text-center rounded-md bg-gradient-to-r from-indigo-600 to-indigo-500 text-white hover:from-indigo-500 hover:to-indigo-400 transition-colors" 
+                                    onClick={toggleMenu}
+                                >
+                                    <UserPlus className="w-4 h-4" />
+                                    <span>Sign Up</span>
+                                </Link>
+                            </li>
                         )}
                     </ul>
                 </div>

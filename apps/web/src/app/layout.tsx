@@ -7,7 +7,6 @@ import "./globals.css";
 import ModalProvider from "@/providers/modal-provider";
 import { Toaster } from "sonner";
 import { BillingProvider } from "@/providers/billing-provider";
-import { Providers } from "@/providers/providers";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const manrope = Manrope({ subsets: ['latin'] });

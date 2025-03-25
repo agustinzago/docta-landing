@@ -9,6 +9,7 @@ import {
   UnauthorizedException,
   BadRequestException,
   ConflictException,
+  HttpStatus,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import express, { Response } from 'express';
@@ -19,12 +20,14 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './decorators/public.decorator';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,
-    private readonly prisma: PrismaService
+    private readonly prisma: PrismaService,
+    private readonly configService: ConfigService
   ) {}
 
   private setAuthCookies(
@@ -33,27 +36,42 @@ export class AuthController {
     refreshToken: string,
     userId: string
   ) {
-    res.cookie('token', accessToken, {
+    // Configuración común para todas las cookies
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
+      sameSite:
+        process.env.NODE_ENV === 'production'
+          ? 'none'
+          : ('lax' as 'none' | 'lax'),
+      path: '/',
+    };
+
+    // Configurar access token como cookie
+    res.cookie('access_token', accessToken, {
+      ...cookieOptions,
       maxAge: 15 * 60 * 1000, // 15 minutos
     });
 
+    // Configurar refresh token como cookie
     res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      ...cookieOptions,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
 
+    // Configurar user_id como cookie no-httpOnly para acceso frontend
     res.cookie('user_id', userId, {
       httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite:
+        process.env.NODE_ENV === 'production'
+          ? 'none'
+          : ('lax' as 'none' | 'lax'),
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
     });
   }
+
   @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
@@ -71,22 +89,57 @@ export class AuthController {
       if (!result) throw new Error('Authentication failed');
 
       const { accessToken, refreshToken, user } = result;
-      this.setAuthCookies(res, accessToken, refreshToken, String(user.id));
 
-      const redirectUrl = new URL(
-        process.env.FRONTEND_URL || 'https://localhost:3000'
-      );
-      redirectUrl.pathname = req.user.logedFirstTime
-        ? '/auth/welcome'
-        : '/dashboard';
+      // Configuración más explícita de cookies para OAuth
+      // Cookie de access_token
+      res.cookie('access_token', accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: 15 * 60 * 1000, // 15 minutos
+      });
+
+      // Cookie de refresh_token
+      res.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      });
+
+      // Cookie de user_id
+      res.cookie('user_id', String(user.id), {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      });
+
+      // Añadir log para confirmar que se establecen las cookies
+      console.log('OAuth: Cookies establecidas para el usuario:', user.id);
+
+      const frontendUrl =
+        this.configService.get('FRONTEND_URL') || 'https://localhost:3000';
+      const redirectUrl = new URL(frontendUrl);
+      redirectUrl.pathname = '/auth/callback'; // Redirigir a la página de callback
+      redirectUrl.hash = `access_token=${accessToken}&refresh_token=${refreshToken}&user_id=${user.id}`;
+
       return res.redirect(redirectUrl.toString());
     } catch (error) {
       console.error('Error en la autenticación con Google:', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
-      res
-        .status(400)
-        .json({ message: 'Error de autenticación', error: errorMessage });
+
+      const frontendUrl =
+        this.configService.get('FRONTEND_URL') || 'https://localhost:3000';
+      const errorRedirectUrl = new URL(frontendUrl);
+      errorRedirectUrl.pathname = '/sign-in';
+      errorRedirectUrl.searchParams.append('error', 'google_auth_failed');
+
+      return res.redirect(errorRedirectUrl.toString());
     }
   }
 
@@ -98,18 +151,37 @@ export class AuthController {
         loginDto.email,
         loginDto.password
       );
-      if (!result) throw new UnauthorizedException('Credenciales inválidas');
+      if (!result) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'Invalid credentials',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
 
-      const { accessToken, refreshToken, user } = await this.authService.signIn(
-        result
-      );
+      const authResult = await this.authService.signIn(result);
+      if (!authResult) {
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'Authentication failed',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
+
+      const { accessToken, refreshToken, user } = authResult;
+
+      // Set cookies
       this.setAuthCookies(res, accessToken, refreshToken, String(user.id));
 
-      return res.status(200).json({ message: 'Login exitoso', user });
+      return res.status(HttpStatus.OK).json({
+        message: 'Login successful',
+        user,
+        statusCode: HttpStatus.OK,
+      });
     } catch (error) {
-      return res.status(401).json({
-        message: 'Error de autenticación',
+      console.error('Login error:', error);
+      return res.status(HttpStatus.UNAUTHORIZED).json({
+        message: 'Authentication error',
         error: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: HttpStatus.UNAUTHORIZED,
       });
     }
   }
@@ -122,18 +194,20 @@ export class AuthController {
   ) {
     try {
       if (!createUserDto.email || !createUserDto.password) {
-        throw new BadRequestException(
-          'El correo y la contraseña son obligatorios'
-        );
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'Email and password are required',
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
       }
 
       const existingUser = await this.authService.validateUserByEmail(
         createUserDto.email
       );
       if (existingUser) {
-        throw new ConflictException(
-          'Este correo electrónico ya está registrado'
-        );
+        return res.status(HttpStatus.CONFLICT).json({
+          message: 'Email already registered',
+          statusCode: HttpStatus.CONFLICT,
+        });
       }
 
       const result = await this.authService.registerUser({
@@ -148,99 +222,168 @@ export class AuthController {
       const { accessToken, refreshToken, user } = result;
       this.setAuthCookies(res, accessToken, refreshToken, String(user.id));
 
-      return res.status(201).json({
-        message: 'Usuario registrado exitosamente',
+      return res.status(HttpStatus.CREATED).json({
+        message: 'User registered successfully',
         user,
+        statusCode: HttpStatus.CREATED,
       });
     } catch (error) {
+      console.error('Registration error:', error);
+
       if (error instanceof ConflictException) {
-        return res
-          .status(409)
-          .json({ message: error.message, error: 'ConflictException' });
+        return res.status(HttpStatus.CONFLICT).json({
+          message: error.message,
+          statusCode: HttpStatus.CONFLICT,
+        });
       }
+
       if (error instanceof BadRequestException) {
-        return res
-          .status(400)
-          .json({ message: error.message, error: 'BadRequestException' });
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: error.message,
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
       }
-      console.error('Error en el registro:', error);
-      return res.status(500).json({
-        message: 'Error al registrar el usuario',
+
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Failed to register user',
         error: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
   }
 
   @Get('logout')
-  @UseGuards(JwtAuthGuard)
-  async logout(@Req() req: any, @Res() res: express.Response): Promise<any> {
+  @Public() // Hacemos público el endpoint de logout para que cualquiera pueda acceder
+  async logout(@Res() res: express.Response): Promise<any> {
     try {
-      res.clearCookie('token');
-      res.clearCookie('refresh_token');
-      res.clearCookie('user_id');
+      // Eliminar cookies de autenticación
+      res.clearCookie('access_token', { path: '/' });
+      res.clearCookie('refresh_token', { path: '/' });
+      res.clearCookie('user_id', { path: '/' });
 
-      return res.status(200).json({ message: 'Sesión cerrada exitosamente' });
+      return res.status(HttpStatus.OK).json({
+        message: 'Logged out successfully',
+        statusCode: HttpStatus.OK,
+      });
     } catch (error) {
-      return res.status(500).json({
-        message: 'Error al cerrar sesión',
+      console.error('Logout error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Error logging out',
         error: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@Req() req: any) {
-    const user = req.user;
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      profileImage: user.profileImage,
-      tier: user.tier,
-      credits: user.credits,
-    };
+  async getProfile(@Req() req: any, @Res() res: express.Response) {
+    try {
+      if (!req.user) {
+        console.error('Usuario no disponible en la solicitud');
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'User not authenticated',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
+      }
+
+      const user = req.user;
+
+      return res.status(HttpStatus.OK).json({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        profileImage: user.profileImage,
+        tier: user.tier,
+        credits: user.credits,
+      });
+    } catch (error) {
+      console.error('Error obteniendo perfil:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Error retrieving user profile',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 
   @Public()
   @Post('refresh')
-  async refreshToken(
-    @Body('refreshToken') refreshToken: string,
-    @Res() res: express.Response
-  ) {
+  async refreshToken(@Req() req: any, @Res() res: express.Response) {
     try {
+      // Extraer el refresh token de las cookies
+      const refreshToken = req.cookies.refresh_token;
+      console.log(
+        'Refresh token recibido:',
+        refreshToken ? 'presente' : 'ausente'
+      );
+
       if (!refreshToken) {
-        throw new BadRequestException('Token de refresco no provisto');
+        return res.status(HttpStatus.BAD_REQUEST).json({
+          message: 'Refresh token not provided',
+          statusCode: HttpStatus.BAD_REQUEST,
+        });
       }
 
+      // Decodificar el token para debugging (sin verificar)
+      const decodedToken = await this.authService.decodeToken(refreshToken);
+      console.log('Decodificando refresh token:', decodedToken);
+
+      // Validar el refresh token
       const payload = await this.authService.validateRefreshToken(refreshToken);
       if (!payload) {
-        throw new UnauthorizedException('Token de refresco inválido');
+        console.error('Token inválido o expirado');
+        // Borrar cookies en caso de token inválido
+        res.clearCookie('access_token', { path: '/' });
+        res.clearCookie('refresh_token', { path: '/' });
+        res.clearCookie('user_id', { path: '/' });
+
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'Invalid or expired refresh token',
+          statusCode: HttpStatus.UNAUTHORIZED,
+        });
       }
 
+      // Buscar el usuario
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
       });
+
       if (!user) {
-        throw new UnauthorizedException('Usuario no encontrado');
-      }
-
-      const { accessToken, refreshToken: newRefreshToken } =
-        await this.authService.generateToken(user);
-      this.setAuthCookies(res, accessToken, newRefreshToken, String(user.id));
-
-      return res.status(200).json({ accessToken });
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        return res.status(400).json({
-          message: 'Error al refrescar el token',
-          error: error.message,
+        console.error(`Usuario no encontrado: ${payload.sub}`);
+        return res.status(HttpStatus.UNAUTHORIZED).json({
+          message: 'User not found',
+          statusCode: HttpStatus.UNAUTHORIZED,
         });
       }
-      console.error('Error al refrescar el token:', error);
-      return res.status(500).json({
-        message: 'Error al refrescar el token',
+
+      // Generar nuevos tokens
+      const { accessToken, refreshToken: newRefreshToken } =
+        await this.authService.generateToken(user);
+
+      // Actualizar cookies
+      this.setAuthCookies(res, accessToken, newRefreshToken, String(user.id));
+
+      console.log('Token actualizado correctamente para el usuario:', user.id);
+
+      return res.status(HttpStatus.OK).json({
+        message: 'Token refreshed successfully',
+        statusCode: HttpStatus.OK,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          profileImage: user.profileImage,
+          tier: user.tier,
+          credits: user.credits,
+        },
+      });
+    } catch (error) {
+      console.error('Refresh token error:', error);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: 'Error refreshing token',
         error: error instanceof Error ? error.message : 'Unknown error',
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
   }

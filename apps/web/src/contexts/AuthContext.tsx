@@ -23,12 +23,59 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
+  // Modificar la función fetchUserProfile
+
   const fetchUserProfile = async () => {
     try {
+      console.log('Fetching user profile');
+      
+      // Verificar si hay tokens en el hash de la URL (específico para OAuth)
+      if (typeof window !== 'undefined' && window.location.hash) {
+        const hash = window.location.hash.substring(1);
+        const params = new URLSearchParams(hash);
+        
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+        const userId = params.get('user_id');
+        
+        if (accessToken && refreshToken && userId) {
+          console.log('Tokens encontrados en URL hash, estableciendo cookies...');
+          
+          // Establecer cookies manualmente desde el cliente
+          document.cookie = `access_token=${accessToken}; path=/; max-age=${15 * 60}`;
+          document.cookie = `refresh_token=${refreshToken}; path=/; max-age=${7 * 24 * 60 * 60}`;
+          document.cookie = `user_id=${userId}; path=/; max-age=${7 * 24 * 60 * 60}`;
+          
+          // Limpiar el hash de la URL para seguridad
+          window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+      }
+      
+      // Continuar con la obtención del perfil
       const userData = await authService.getProfile();
+      console.log('User profile fetched successfully', userData);
       setUser(userData);
       return userData;
     } catch (error) {
+      console.error('Failed to fetch user profile:', error);
+      
+      // Intentar refrescar el token si hay algún usuario en la cookie
+      if (document.cookie.includes('user_id')) {
+        console.log('Found user_id cookie, attempting to refresh token');
+        const refreshed = await authService.refreshToken();
+        if (refreshed) {
+          console.log('Token refreshed, trying to fetch profile again');
+          try {
+            const userData = await authService.getProfile();
+            console.log('User profile fetched after token refresh', userData);
+            setUser(userData);
+            return userData;
+          } catch (retryError) {
+            console.error('Failed to fetch profile after token refresh:', retryError);
+          }
+        }
+      }
+      
       setUser(null);
       return null;
     } finally {

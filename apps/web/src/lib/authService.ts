@@ -1,7 +1,7 @@
 import { User } from '@/types';
 
 // API URL desde las variables de entorno o fallback a localhost
-const API_URL = process.env.API_URL || 'http://localhost:5005/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5005/api';
 
 export interface LoginCredentials {
   email: string;
@@ -23,19 +23,19 @@ class AuthService {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Importante para recibir cookies del backend
+        credentials: 'include', // Para enviar/recibir cookies
         body: JSON.stringify(credentials),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Error al iniciar sesión');
+        throw new Error(error.message || 'Error signing in');
       }
 
       const data = await response.json();
       return data.user;
     } catch (error) {
-      console.error('Error en servicio de login:', error);
+      console.error('Login service error:', error);
       throw error;
     }
   }
@@ -53,13 +53,13 @@ class AuthService {
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Error al registrarse');
+        throw new Error(error.message || 'Error registering user');
       }
 
       const data = await response.json();
       return data.user;
     } catch (error) {
-      console.error('Error en servicio de registro:', error);
+      console.error('Register service error:', error);
       throw error;
     }
   }
@@ -68,56 +68,111 @@ class AuthService {
     try {
       const response = await fetch(`${API_URL}/auth/logout`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include', // Para enviar cookies
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Error al cerrar sesión');
+        throw new Error(error.message || 'Error logging out');
       }
     } catch (error) {
-      console.error('Error en servicio de logout:', error);
+      console.error('Logout service error:', error);
       throw error;
     }
   }
 
   async getProfile(): Promise<User> {
     try {
+      console.log('Obteniendo perfil de usuario...');
+
       const response = await fetch(`${API_URL}/auth/profile`, {
         method: 'GET',
-        credentials: 'include', // Para enviar las cookies de autenticación
+        credentials: 'include', // CRUCIAL: Envía las cookies con la solicitud
+        headers: {
+          Accept: 'application/json',
+        },
       });
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('No autenticado');
+      console.log('Respuesta de perfil:', response.status);
+
+      if (response.status === 401) {
+        console.log('Token expirado, intentando refrescar...');
+        const refreshSuccess = await this.refreshToken();
+
+        if (refreshSuccess) {
+          console.log('Token refrescado, reintentando obtener perfil');
+          const retryResponse = await fetch(`${API_URL}/auth/profile`, {
+            method: 'GET',
+            credentials: 'include', // Importante repetir aquí también
+            headers: {
+              Accept: 'application/json',
+            },
+          });
+
+          if (retryResponse.ok) {
+            const userData = await retryResponse.json();
+            console.log('Perfil obtenido tras refrescar token');
+            return userData;
+          }
         }
-        const error = await response.json();
-        throw new Error(error.message || 'Error al obtener perfil');
+
+        throw new Error('No se pudo autenticar');
       }
 
-      return await response.json();
+      if (!response.ok) {
+        throw new Error(`Error al obtener perfil: ${response.status}`);
+      }
+
+      const userData = await response.json();
+      return userData;
     } catch (error) {
-      console.error('Error al obtener perfil:', error);
+      console.error('Error en getProfile:', error);
       throw error;
     }
   }
 
   async googleLogin(): Promise<void> {
+    console.log('Iniciando autenticación con Google');
+    // Guardar la URL actual para redirección post-autenticación si es necesario
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_redirect', window.location.pathname);
+    }
+
     // Redirigir al usuario a la URL de inicio de sesión de Google en el backend
     window.location.href = `${API_URL}/auth/google`;
   }
 
   async refreshToken(): Promise<boolean> {
     try {
+      console.log('Intentando refrescar token...');
+
+      // Verificar si la cookie refresh_token existe en el navegador
+      if (typeof document !== 'undefined') {
+        const hasCookie = document.cookie
+          .split(';')
+          .some((item) => item.trim().startsWith('refresh_token='));
+        console.log('Cookie refresh_token presente:', hasCookie);
+      }
+
       const response = await fetch(`${API_URL}/auth/refresh`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // CRUCIAL: Envía las cookies almacenadas con la solicitud
+        headers: {
+          Accept: 'application/json',
+        },
       });
 
-      return response.ok;
+      if (response.ok) {
+        console.log('Token refrescado con éxito');
+        return true;
+      } else {
+        console.error('Error al refrescar token:', response.status);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Detalles del error:', errorData);
+        return false;
+      }
     } catch (error) {
-      console.error('Error al refrescar token:', error);
+      console.error('Excepción al refrescar token:', error);
       return false;
     }
   }
