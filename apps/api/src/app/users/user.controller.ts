@@ -9,8 +9,8 @@ import {
   Post,
   Req,
   UseGuards,
+  Logger,
 } from '@nestjs/common';
-import express from 'express';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -19,6 +19,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('users')
 export class UserController {
+  private readonly logger = new Logger(UserController.name);
+
   constructor(private readonly userService: UserService) {}
 
   @Post()
@@ -33,11 +35,12 @@ export class UserController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getProfile(@Req() request: express.Request): Promise<User> {
-    const user: any = request.user;
+  async getProfile(@Req() request: Express.Request): Promise<User> {
+    const user = request['user'] as User;
     return this.userService.findOne(user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User> {
     return this.userService.findOne(id);
@@ -47,9 +50,16 @@ export class UserController {
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto
+    @Body() updateUserDto: UpdateUserDto,
+    @Req() request: Express.Request
   ): Promise<User> {
-    // Verificar si el email ya está en uso si se intenta actualizar
+    // Verificar que el usuario solo pueda modificar su propio perfil
+    const user = request['user'] as User;
+    if (user.id !== id) {
+      throw new BadRequestException('You can only update your own profile');
+    }
+
+    // Verificar si el email ya está en uso
     if (updateUserDto.email) {
       const existingUser = await this.userService.findByEmail(
         updateUserDto.email
@@ -65,8 +75,14 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(
-    @Param('id') id: string
+    @Param('id') id: string,
+    @Req() request: Express.Request
   ): Promise<{ success: boolean; message: string }> {
+    const user = request['user'] as User;
+    if (user.id !== id) {
+      throw new BadRequestException('You can only delete your own profile');
+    }
+
     await this.userService.remove(id);
     return {
       success: true,

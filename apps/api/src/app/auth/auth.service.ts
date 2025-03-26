@@ -2,16 +2,30 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '../users/entities/user.entity';
 import { UserService } from '../users/user.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
+import { User } from '../users/entities/user.entity';
+
+export interface TokenPayload {
+  sub: string;
+  email: string;
+}
+
+export interface AuthResult {
+  accessToken: string;
+  refreshToken: string;
+  user: Partial<User>;
+}
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
@@ -19,22 +33,20 @@ export class AuthService {
     private configService: ConfigService
   ) {}
 
-  // Método para iniciar sesión y generar tokens JWT
-  async signIn(user: any) {
+  async signIn(user: User): Promise<AuthResult | null> {
     try {
-      // Verificar que el usuario exista
-      if (!user || !user.id) {
-        console.error('signIn: Usuario inválido', user);
+      if (!user?.id) {
+        this.logger.error(
+          'Intento de inicio de sesión con usuario inválido',
+          user
+        );
         return null;
       }
 
-      // Generar tokens
-      const tokens = await this.generateToken(user);
-      console.log(`signIn: Tokens generados para usuario ${user.id}`);
-
-      return tokens;
+      return this.generateTokens(user);
     } catch (error) {
-      console.error('Error en signIn:', error);
+      const err = error as Error;
+      this.logger.error(`Error en signIn: ${err.message}`, err.stack);
       throw error;
     }
   }
@@ -50,128 +62,83 @@ export class AuthService {
     return isPasswordValid ? user : null;
   }
 
-  async registerUser(userData: Partial<User>) {
-    try {
-      if (!userData.email)
-        throw new BadRequestException('El email es requerido');
-
-      const existingUser = await this.userService.findByEmail(userData.email);
-      if (existingUser)
-        throw new BadRequestException('Ya existe un usuario con ese email');
-
-      const newUser = await this.prisma.user.create({
-        data: {
-          email: userData.email,
-          name: userData.name,
-          profileImage: userData.profileImage,
-          googleId: userData.googleId,
-          googleEmail: userData.googleEmail,
-          refreshToken: userData.refreshToken,
-          tier: userData.tier || 'Free',
-          credits: userData.credits || '10',
-          ...(userData.password && {
-            password: await this.hashPassword(userData.password),
-          }),
-        },
-      });
-
-      return this.generateToken(new User(newUser));
-    } catch (error) {
-      if (error instanceof BadRequestException) throw error;
-      console.error('Error al registrar usuario:', error);
-      throw new BadRequestException('No se pudo crear el usuario');
+  async registerUser(userData: Partial<User>): Promise<AuthResult> {
+    if (!userData.email) {
+      throw new BadRequestException('El email es requerido');
     }
-  }
 
-  // Método para generar tokens JWT
-  async generateToken(user: any) {
-    try {
-      const payload = { sub: user.id, email: user.email };
-
-      // Obtener secreto del ConfigService
-      const secret = this.configService.get<string>('JWT_SECRET');
-      if (!secret) {
-        console.error('JWT_SECRET no está configurado');
-        throw new Error('JWT_SECRET is not defined');
-      }
-
-      // Generar tokens con el secreto configurado
-      const accessToken = await this.jwtService.signAsync(payload, {
-        secret: secret,
-        expiresIn: '15m',
-      });
-
-      const refreshToken = await this.jwtService.signAsync(payload, {
-        secret: secret,
-        expiresIn: '7d',
-      });
-
-      console.log(
-        `generateToken: Tokens generados correctamente para ${user.id}`
-      );
-
-      return {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          profileImage: user.profileImage,
-          tier: user.tier,
-          credits: user.credits,
-        },
-      };
-    } catch (error) {
-      console.error('Error generando tokens:', error);
-      throw error;
+    const existingUser = await this.userService.findByEmail(userData.email);
+    if (existingUser) {
+      throw new BadRequestException('Ya existe un usuario con ese email');
     }
+
+    const userToCreate = {
+      ...userData,
+      email: userData.email,
+      password: userData.password
+        ? await this.hashPassword(userData.password)
+        : undefined,
+    };
+
+    // Delegamos la creación al servicio de usuarios
+    const newUser = await this.userService.create(userToCreate as any);
+    return this.generateTokens(newUser);
   }
 
-  async generateAccessToken(user: User): Promise<string> {
-    const payload = { sub: user.id, email: user.email };
-    return this.jwtService.signAsync(payload, { expiresIn: '15m' });
+  async generateTokens(user: User): Promise<AuthResult> {
+    const payload: TokenPayload = { sub: user.id, email: user.email };
+    const accessTokenSecret = this.configService.get<string>('JWT_SECRET');
+    const refreshTokenSecret = this.configService.get<string>(
+      'JWT_REFRESH_TOKEN_KEY'
+    );
+
+    if (!accessTokenSecret || !refreshTokenSecret) {
+      this.logger.error('JWT secrets no están configurados correctamente');
+      throw new Error('JWT secrets are not defined');
+    }
+
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: accessTokenSecret,
+      expiresIn: '15m',
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: refreshTokenSecret,
+      expiresIn: '7d',
+    });
+
+    return {
+      accessToken,
+      refreshToken,
+      user: this.getUserResponseData(user),
+    };
   }
 
-  // Actualizar el método validateRefreshToken
-  async validateRefreshToken(token: string): Promise<any> {
-    try {
-      console.log('Validando refresh token');
-
-      // Verificar que el token no esté vacío
-      if (!token || token === 'undefined' || token === 'null') {
-        console.error('Token vacío o inválido');
-        return null;
-      }
-
-      // Obtener el secreto usando el ConfigService
-      const secret = this.configService.get<string>('JWT_SECRET');
-      if (!secret) {
-        console.error('JWT_SECRET no está configurado');
-        throw new Error('JWT_SECRET is not defined');
-      }
-
-      // Verificar el token con el secreto obtenido del ConfigService
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: secret,
-      });
-
-      console.log('Token validado correctamente para el usuario:', payload.sub);
-      return payload;
-    } catch (error) {
-      console.error('Error validando refresh token:', error);
+  async validateRefreshToken(token: string): Promise<TokenPayload | null> {
+    if (!token || token === 'undefined' || token === 'null') {
       return null;
     }
-  }
 
-  async decodeToken(token: string): Promise<any> {
     try {
-      if (!token || token === 'undefined' || token === 'null') {
-        return null;
+      const refreshTokenSecret = this.configService.get<string>(
+        'JWT_REFRESH_TOKEN_KEY'
+      );
+      if (!refreshTokenSecret) {
+        this.logger.error('JWT_REFRESH_TOKEN_KEY no está configurado');
+        throw new Error('JWT_REFRESH_TOKEN_KEY is not defined');
       }
-      return this.jwtService.decode(token);
+
+      const payload = await this.jwtService.verifyAsync<TokenPayload>(token, {
+        secret: refreshTokenSecret,
+      });
+
+      return payload;
     } catch (error) {
-      console.error('Error decodificando token:', error);
+      const err = error as Error;
+      this.logger.error(
+        `Error validando refresh token: ${err.message}`,
+        err.stack
+      );
       return null;
     }
   }
@@ -181,8 +148,15 @@ export class AuthService {
     return bcrypt.hash(password, salt);
   }
 
-  async validateJwtPayload(payload: any): Promise<User | null> {
-    return this.userService.findOne(payload.sub);
+  private getUserResponseData(user: User): Partial<User> {
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      profileImage: user.profileImage,
+      tier: user.tier,
+      credits: user.credits,
+    };
   }
 
   async validateUserByEmail(email: string): Promise<User | null> {

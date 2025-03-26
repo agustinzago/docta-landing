@@ -321,7 +321,7 @@ export class AuthController {
 
       // Generar nuevos tokens
       const { accessToken, refreshToken: newRefreshToken } =
-        await this.authService.generateToken(user);
+        await this.authService.generateTokens(user);
 
       // Actualizar cookies
       this.setAuthCookies(res, accessToken, newRefreshToken, String(user.id));
