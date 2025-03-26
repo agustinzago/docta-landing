@@ -105,7 +105,7 @@ export class AuthController {
       res.cookie('access_token', accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Importante: 'lax' permitirá que la cookie se envíe en redirecciones
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         maxAge: accessTokenMaxAge,
       });
@@ -114,7 +114,7 @@ export class AuthController {
       res.cookie('refresh_token', refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax', // Importante para redirecciones cross-site
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         maxAge: refreshTokenMaxAge,
       });
@@ -123,7 +123,7 @@ export class AuthController {
       res.cookie('user_id', String(user.id), {
         httpOnly: false, // Para que sea accesible desde JavaScript
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         path: '/',
         maxAge: refreshTokenMaxAge,
       });

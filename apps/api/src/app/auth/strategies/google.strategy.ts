@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth2';
 import type { ConfigType } from '@nestjs/config';
@@ -9,6 +9,8 @@ import { User } from '../../users/entities/user.entity';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  private readonly logger = new Logger(GoogleStrategy.name);
+
   constructor(
     @Inject(configuration.KEY)
     private readonly config: ConfigType<typeof configuration>,
@@ -40,7 +42,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     try {
       const { id, emails, name, photos } = profile;
 
-      // Verificar que tengamos un email
       if (!emails || emails.length === 0) {
         return done(new Error('No email provided from Google'), null);
       }
@@ -50,120 +51,94 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       const lastName = name?.familyName || '';
       const photo = photos && photos.length > 0 ? photos[0].value : null;
 
-      // Implementa reintentos para problemas de conexión
-      let user;
-      try {
-        // Buscar usuario por googleId o email
-        user = await this.userService.findByGoogleId(id);
-      } catch (error: any) {
-        if (error.code === 'P2024') {
-          // Error de tiempo de espera del pool de conexiones
-          console.error('Database connection pool timeout, retrying...');
-          // Esperar un momento y reintentar una vez
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          user = await this.userService.findByGoogleId(id);
-        } else {
-          throw error;
-        }
-      }
+      // Buscar o crear usuario con manejo de reintentos
+      const user = await this.findOrCreateUser(
+        id,
+        email,
+        firstName,
+        lastName,
+        photo,
+        refreshToken
+      );
 
-      if (!user) {
-        try {
-          // Intentar encontrar por email
-          user = await this.userService.findByEmail(email);
-        } catch (error: any) {
-          if (error.code === 'P2024') {
-            // Error de tiempo de espera del pool de conexiones
-            console.error(
-              'Database connection pool timeout on email lookup, retrying...'
-            );
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            user = await this.userService.findByEmail(email);
-          } else {
-            throw error;
-          }
-        }
-      }
-
-      if (!user) {
-        try {
-          // Crear un nuevo usuario
-          const newUser = await this.prisma.user.create({
-            data: {
-              email: email,
-              name: `${firstName} ${lastName}`.trim(),
-              profileImage: photo,
-              googleId: id,
-              googleEmail: email,
-              refreshToken: refreshToken,
-              tier: 'Free',
-              credits: '10',
-            },
-          });
-
-          return done(null, new User(newUser));
-        } catch (error: any) {
-          if (error.code === 'P2024') {
-            console.error(
-              'Database connection pool timeout on user creation, retrying...'
-            );
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            const newUser = await this.prisma.user.create({
-              data: {
-                email: email,
-                name: `${firstName} ${lastName}`.trim(),
-                profileImage: photo,
-                googleId: id,
-                googleEmail: email,
-                refreshToken: refreshToken,
-                tier: 'Free',
-                credits: '10',
-              },
-            });
-            return done(null, new User(newUser));
-          } else {
-            throw error;
-          }
-        }
-      } else {
-        try {
-          // Actualizar información de Google si el usuario ya existe
-          const updatedUser = await this.prisma.user.update({
-            where: { id: user.id },
-            data: {
-              googleId: id,
-              googleEmail: email,
-              refreshToken: refreshToken,
-              // Solo actualizar la imagen si no tiene una
-              profileImage: user.profileImage || photo,
-            },
-          });
-
-          return done(null, new User(updatedUser));
-        } catch (error: any) {
-          if (error.code === 'P2024') {
-            console.error(
-              'Database connection pool timeout on user update, retrying...'
-            );
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            const updatedUser = await this.prisma.user.update({
-              where: { id: user.id },
-              data: {
-                googleId: id,
-                googleEmail: email,
-                refreshToken: refreshToken,
-                profileImage: user.profileImage || photo,
-              },
-            });
-            return done(null, new User(updatedUser));
-          } else {
-            throw error;
-          }
-        }
-      }
-    } catch (error: any) {
-      console.error('Error en validación de Google OAuth:', error);
+      return done(null, new User(user));
+    } catch (error) {
+      const errorObj = error as Error;
+      this.logger.error(
+        `Error during Google OAuth validation: ${errorObj.message}`,
+        errorObj.stack
+      );
       return done(error, null);
     }
+  }
+
+  private async findOrCreateUser(
+    googleId: string,
+    email: string,
+    firstName: string,
+    lastName: string,
+    photo: string | null,
+    refreshToken: string
+  ) {
+    // Intenta ejecutar una función con retries para manejar errores de conexión
+    const executeWithRetry = async <T>(
+      fn: () => Promise<T>,
+      retries = 1
+    ): Promise<T> => {
+      try {
+        return await fn();
+      } catch (error: unknown) {
+        const prismaError = error as { code?: string };
+        if (prismaError.code === 'P2024' && retries > 0) {
+          this.logger.warn(
+            `Database connection pool timeout, retrying... (${retries} retries left)`
+          );
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          return executeWithRetry(fn, retries - 1);
+        }
+        throw error;
+      }
+    };
+
+    // Buscar por googleId
+    let user = await executeWithRetry(() =>
+      this.userService.findByGoogleId(googleId)
+    );
+
+    // Si no existe, buscar por email
+    if (!user) {
+      user = await executeWithRetry(() => this.userService.findByEmail(email));
+    }
+
+    // Si todavía no existe, crear nuevo usuario
+    if (!user) {
+      return executeWithRetry(() =>
+        this.prisma.user.create({
+          data: {
+            email,
+            name: `${firstName} ${lastName}`.trim(),
+            profileImage: photo,
+            googleId,
+            googleEmail: email,
+            refreshToken,
+            tier: 'Free',
+            credits: '10',
+          },
+        })
+      );
+    }
+
+    // Actualizar usuario existente
+    return executeWithRetry(() =>
+      this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId,
+          googleEmail: email,
+          refreshToken,
+          profileImage: user.profileImage || photo,
+        },
+      })
+    );
   }
 }
